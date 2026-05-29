@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}区域对比 - 智慧房产探索平台{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'analysis:index' %}">数据分析</a></li>
+        <li class="breadcrumb-item active">区域对比</li>
+    </ol>
+</nav>
+
+<h2 class="mb-4"><i class="bi bi-arrow-left-right text-primary"></i> 区域房价对比</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">选择城市</label>
+                <select id="citySelect" class="form-select">
+                    {% for city in cities %}
+                    <option value="{{ city.name }}">{{ city.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">对比结果将展示该城市所有区域的房价对比</label>
+            </div>
+            <div class="col-md-2">
+                <button id="compareBtn" class="btn btn-primary w-100">开始对比</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">区域均价对比</div>
+            <div class="card-body">
+                <div id="compareChart" style="height: 450px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var compareChart = echarts.init(document.getElementById('compareChart'));
+
+    function loadCompare() {
+        var city = document.getElementById('citySelect').value;
+        fetch('/analysis/api/price-distribution/?city=' + encodeURIComponent(city))
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var data = res.data.sort(function(a, b) { return (b.avg_price || 0) - (a.avg_price || 0); });
+                compareChart.setOption({
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function(params) {
+                            var d = data[params[0].dataIndex];
+                            return d.name + '<br/>均价: ' + Math.round(d.avg_price || 0) + ' 元/㎡<br/>房源: ' + (d.house_count || 0) + ' 套';
+                        }
+                    },
+                    xAxis: { type: 'category', data: data.map(function(d) { return d.name; }), axisLabel: { rotate: 45 } },
+                    yAxis: { type: 'value', name: '元/㎡' },
+                    series: [{
+                        type: 'bar',
+                        data: data.map(function(d) { return Math.round(d.avg_price || 0); }),
+                        itemStyle: {
+                            color: function(params) {
+                                var colors = ['#e91e63', '#f44336', '#ff5722', '#ff9800', '#ffc107', '#4caf50', '#009688', '#00bcd4', '#2196f3', '#3f51b5'];
+                                return colors[params.dataIndex % colors.length];
+                            }
+                        },
+                        label: { show: true, position: 'top', formatter: '{c}' }
+                    }],
+                    grid: { left: '8%', right: '5%', bottom: '18%', top: '10%' }
+                });
+            });
+    }
+
+    document.getElementById('compareBtn').addEventListener('click', loadCompare);
+    loadCompare();
+
+    window.addEventListener('resize', function() { compareChart.resize(); });
+</script>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}数据分析 - 智慧房产探索平台{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-bar-chart-line text-primary"></i> 数据分析</h2>
+
+<!-- 城市选择 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <label class="form-label">选择城市</label>
+                <select id="citySelect" class="form-select">
+                    {% for city in cities %}
+                    <option value="{{ city.name }}">{{ city.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-9 text-end">
+                <a href="{% url 'analysis:compare' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left-right"></i> 区域对比
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 区域房价分布 -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-bar-chart"></i> 各区域均价分布</div>
+            <div class="card-body">
+                <div id="priceDistChart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 户型统计 -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-pie-chart"></i> 热门户型分布</div>
+            <div class="card-body">
+                <div id="layoutChart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 面积-价格散点图 -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-scatter"></i> 面积与单价关系</div>
+            <div class="card-body">
+                <div id="scatterChart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 装修情况统计 -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-palette"></i> 装修情况分析</div>
+            <div class="card-body">
+                <div id="decorationChart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var priceDistChart = echarts.init(document.getElementById('priceDistChart'));
+    var layoutChart = echarts.init(document.getElementById('layoutChart'));
+    var scatterChart = echarts.init(document.getElementById('scatterChart'));
+    var decorationChart = echarts.init(document.getElementById('decorationChart'));
+
+    function loadData(city) {
+        // 区域房价分布
+        fetch('/analysis/api/price-distribution/?city=' + encodeURIComponent(city))
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var data = res.data;
+                priceDistChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: data.map(function(d) { return d.name; }), axisLabel: { rotate: 45 } },
+                    yAxis: { type: 'value', name: '元/㎡' },
+                    series: [{
+                        type: 'bar',
+                        data: data.map(function(d) { return d.avg_price ? Math.round(d.avg_price) : 0; }),
+                        itemStyle: { color: '#1976d2' }
+                    }],
+                    grid: { left: '12%', right: '5%', bottom: '20%' }
+                });
+            });
+
+        // 户型统计
+        fetch('/analysis/api/layout-stats/?city=' + encodeURIComponent(city))
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var data = res.data;
+                layoutChart.setOption({
+                    tooltip: { trigger: 'item', formatter: '{b}: {c}套 ({d}%)' },
+                    series: [{
+                        type: 'pie',
+                        radius: ['30%', '65%'],
+                        data: data.map(function(d) { return { name: d.layout || '未知', value: d.count }; }),
+                        label: { formatter: '{b}\n{d}%' }
+                    }]
+                });
+            });
+
+        // 面积-价格散点图
+        fetch('/analysis/api/price-area/?city=' + encodeURIComponent(city))
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var data = res.data;
+                scatterChart.setOption({
+                    tooltip: { formatter: function(p) { return '面积: ' + p.data[0] + '㎡<br>单价: ' + p.data[1] + '元/㎡'; } },
+                    xAxis: { type: 'value', name: '面积(㎡)' },
+                    yAxis: { type: 'value', name: '单价(元/㎡)' },
+                    series: [{
+                        type: 'scatter',
+                        data: data.map(function(d) { return [parseFloat(d.area), parseFloat(d.unit_price)]; }),
+                        symbolSize: 6,
+                        itemStyle: { color: '#e91e63', opacity: 0.6 }
+                    }],
+                    grid: { left: '12%', right: '5%', bottom: '12%' }
+                });
+            });
+
+        // 装修情况
+        fetch('/analysis/api/decoration-stats/?city=' + encodeURIComponent(city))
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var data = res.data;
+                decorationChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: data.map(function(d) { return d.decoration; }) },
+                    yAxis: [
+                        { type: 'value', name: '数量' },
+                        { type: 'value', name: '均价(元/㎡)', position: 'right' }
+                    ],
+                    series: [
+                        { type: 'bar', data: data.map(function(d) { return d.count; }), name: '数量', itemStyle: { color: '#4caf50' } },
+                        { type: 'line', data: data.map(function(d) { return d.avg_price ? Math.round(d.avg_price) : 0; }), name: '均价', yAxisIndex: 1, itemStyle: { color: '#ff9800' } }
+                    ],
+                    legend: { bottom: 0 },
+                    grid: { left: '10%', right: '10%', bottom: '15%' }
+                });
+            });
+    }
+
+    // 初始加载
+    var citySelect = document.getElementById('citySelect');
+    loadData(citySelect.value);
+
+    citySelect.addEventListener('change', function() {
+        loadData(this.value);
+    });
+
+    window.addEventListener('resize', function() {
+        priceDistChart.resize();
+        layoutChart.resize();
+        scatterChart.resize();
+        decorationChart.resize();
+    });
+</script>
+{% endblock %}

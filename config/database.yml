@@ -1,0 +1,7 @@
+database:
+  host: 127.0.0.1
+  port: 3306
+  name: smart_estate
+  user: root
+  password: your_password_here
+  charset: utf8mb4

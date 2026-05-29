@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}房源列表 - 智慧房产探索平台{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-building text-primary"></i> 二手房源</h2>
+
+<!-- 筛选条件 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">城市</label>
+                <select name="city" class="form-select" id="citySelect">
+                    <option value="">全部城市</option>
+                    {% for city in cities %}
+                    <option value="{{ city.name }}" {% if filters.city == city.name %}selected{% endif %}>{{ city.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">区域</label>
+                <select name="district" class="form-select" id="districtSelect">
+                    <option value="">全部区域</option>
+                    {% for district in districts %}
+                    <option value="{{ district.id }}" {% if filters.district == district.id|stringformat:"d" %}selected{% endif %}>{{ district.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">价格范围(万)</label>
+                <div class="input-group">
+                    <input type="number" name="min_price" class="form-control" placeholder="最低" value="{{ filters.min_price }}">
+                    <span class="input-group-text">-</span>
+                    <input type="number" name="max_price" class="form-control" placeholder="最高" value="{{ filters.max_price }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">面积范围(㎡)</label>
+                <div class="input-group">
+                    <input type="number" name="min_area" class="form-control" placeholder="最小" value="{{ filters.min_area }}">
+                    <span class="input-group-text">-</span>
+                    <input type="number" name="max_area" class="form-control" placeholder="最大" value="{{ filters.max_area }}">
+                </div>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">户型</label>
+                <input type="text" name="layout" class="form-control" placeholder="如:两室" value="{{ filters.layout }}">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary d-block w-100">筛选</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 排序 -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="text-muted">共 {{ page_obj.paginator.count }} 套房源</span>
+    <div class="btn-group btn-group-sm">
+        <a href="?{{ request.GET.urlencode }}&sort=-created_at" class="btn btn-outline-secondary {% if filters.sort == '-created_at' %}active{% endif %}">最新</a>
+        <a href="?{{ request.GET.urlencode }}&sort=total_price" class="btn btn-outline-secondary {% if filters.sort == 'total_price' %}active{% endif %}">价格↑</a>
+        <a href="?{{ request.GET.urlencode }}&sort=-total_price" class="btn btn-outline-secondary {% if filters.sort == '-total_price' %}active{% endif %}">价格↓</a>
+        <a href="?{{ request.GET.urlencode }}&sort=-area" class="btn btn-outline-secondary {% if filters.sort == '-area' %}active{% endif %}">面积↓</a>
+    </div>
+</div>
+
+<!-- 房源列表 -->
+<div class="row">
+    {% for house in page_obj %}
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="card-title mb-1">
+                            <a href="{% url 'house:detail' house.id %}" class="text-decoration-none">{{ house.title }}</a>
+                        </h5>
+                        <p class="text-muted mb-1">
+                            <i class="bi bi-geo-alt"></i> {{ house.community.district.city.name }} - {{ house.community.district.name }} - {{ house.community.name }}
+                        </p>
+                        <div class="d-flex gap-3 text-muted small">
+                            {% if house.layout %}<span><i class="bi bi-grid"></i> {{ house.layout }}</span>{% endif %}
+                            {% if house.area %}<span><i class="bi bi-arrows-angle-expand"></i> {{ house.area }}㎡</span>{% endif %}
+                            {% if house.orientation %}<span><i class="bi bi-compass"></i> {{ house.orientation }}</span>{% endif %}
+                            {% if house.floor %}<span><i class="bi bi-layers"></i> {{ house.floor }}</span>{% endif %}
+                            {% if house.decoration %}<span><i class="bi bi-palette"></i> {{ house.decoration }}</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <span class="text-danger fw-bold fs-4">{{ house.total_price }}</span>
+                        <span class="text-muted">万</span>
+                        <br>
+                        <small class="text-muted">{{ house.unit_price|floatformat:0 }} 元/㎡</small>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <a href="{% url 'house:detail' house.id %}" class="btn btn-outline-primary btn-sm">查看详情</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+        <p class="text-muted mt-3">暂无房源数据</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">上一页</a></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">下一页</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 城市切换时动态加载区域
+    document.getElementById('citySelect').addEventListener('change', function() {
+        var city = this.value;
+        var districtSelect = document.getElementById('districtSelect');
+        districtSelect.innerHTML = '<option value="">全部区域</option>';
+
+        if (city) {
+            fetch('/house/api/districts/?city=' + encodeURIComponent(city))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    data.districts.forEach(function(d) {
+                        var opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.name;
+                        districtSelect.appendChild(opt);
+                    });
+                });
+        }
+    });
+</script>
+{% endblock %}

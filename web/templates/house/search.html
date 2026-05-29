@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}搜索房源 - 智慧房产探索平台{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-search text-primary"></i> 搜索房源</h2>
+
+<!-- 搜索框 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control form-control-lg" placeholder="输入小区名、区域名或关键词搜索..." value="{{ keyword }}">
+            <button type="submit" class="btn btn-primary btn-lg px-4">
+                <i class="bi bi-search"></i> 搜索
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if keyword %}
+<p class="text-muted mb-3">搜索 "{{ keyword }}" 共找到 {{ page_obj.paginator.count }} 条结果</p>
+{% endif %}
+
+<!-- 搜索结果 -->
+{% for house in page_obj %}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <h5><a href="{% url 'house:detail' house.id %}" class="text-decoration-none">{{ house.title }}</a></h5>
+                <p class="text-muted mb-1">
+                    <i class="bi bi-geo-alt"></i> {{ house.community.district.city.name }} - {{ house.community.district.name }} - {{ house.community.name }}
+                </p>
+                <div class="d-flex gap-3 small text-muted">
+                    {% if house.layout %}<span>{{ house.layout }}</span>{% endif %}
+                    {% if house.area %}<span>{{ house.area }}㎡</span>{% endif %}
+                    {% if house.floor %}<span>{{ house.floor }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <span class="text-danger fw-bold fs-4">{{ house.total_price }}</span><span class="text-muted">万</span>
+                <br><small class="text-muted">{{ house.unit_price|floatformat:0 }} 元/㎡</small>
+            </div>
+            <div class="col-md-2 text-end">
+                <a href="{% url 'house:detail' house.id %}" class="btn btn-outline-primary btn-sm">详情</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-5">
+    <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+    <p class="text-muted mt-3">{% if keyword %}未找到相关房源{% else %}请输入关键词搜索{% endif %}</p>
+</div>
+{% endfor %}
+
+<!-- 分页 -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?q={{ keyword }}&page={{ page_obj.previous_page_number }}">上一页</a></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?q={{ keyword }}&page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?q={{ keyword }}&page={{ page_obj.next_page_number }}">下一页</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

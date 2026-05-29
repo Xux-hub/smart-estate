@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}房价预测 - 智慧房产探索平台{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-graph-up-arrow text-primary"></i> 房价预测</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">选择城市</label>
+                <select id="citySelect" class="form-select">
+                    {% for city in cities %}
+                    <option value="{{ city.name }}">{{ city.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">选择区域</label>
+                <select id="districtSelect" class="form-select">
+                    <option value="">全部区域</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button id="predictBtn" class="btn btn-primary w-100">查看预测</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 预测趋势图 -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-graph-up"></i> 房价趋势预测</div>
+            <div class="card-body">
+                <div id="trendChart" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预测结果 -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-clipboard-data"></i> 预测结果</div>
+            <div class="card-body" id="predictionResult">
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-graph-up-arrow" style="font-size: 3rem;"></i>
+                    <p class="mt-2">选择城市和区域后查看预测结果</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 说明 -->
+<div class="card">
+    <div class="card-header"><i class="bi bi-info-circle"></i> 预测说明</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h6>预测模型</h6>
+                <p class="text-muted small">采用随机森林和线性回归模型，基于历史房价数据、区域特征、市场趋势等多维度特征进行预测。</p>
+            </div>
+            <div class="col-md-4">
+                <h6>数据来源</h6>
+                <p class="text-muted small">数据来源于各大房产平台公开信息，经过清洗和标准化处理，确保数据质量。</p>
+            </div>
+            <div class="col-md-4">
+                <h6>免责声明</h6>
+                <p class="text-muted small">预测结果仅供参考，不构成投资建议。房价受多种因素影响，实际走势可能与预测存在偏差。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var trendChart = echarts.init(document.getElementById('trendChart'));
+
+    // 加载区域列表
+    function loadDistricts(city) {
+        fetch('/house/api/districts/?city=' + encodeURIComponent(city))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var select = document.getElementById('districtSelect');
+                select.innerHTML = '<option value="">全部区域</option>';
+                data.districts.forEach(function(d) {
+                    var opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.name;
+                    select.appendChild(opt);
+                });
+            });
+    }
+
+    // 加载预测数据
+    function loadPrediction() {
+        var city = document.getElementById('citySelect').value;
+        var district = document.getElementById('districtSelect').value;
+
+        var url = '/prediction/api/data/?city=' + encodeURIComponent(city);
+        if (district) url += '&district=' + district;
+
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var data = res.data;
+                if (data.length === 0) {
+                    trendChart.setOption({
+                        title: { text: '暂无预测数据', left: 'center', top: 'middle', textStyle: { color: '#999' } },
+                        xAxis: { show: false },
+                        yAxis: { show: false },
+                        series: []
+                    });
+                    document.getElementById('predictionResult').innerHTML = '<div class="text-center text-muted py-5"><p>暂无预测数据，请先运行预测模型</p></div>';
+                    return;
+                }
+
+                var dates = data.map(function(d) { return d.predict_date; });
+                var prices = data.map(function(d) { return parseFloat(d.avg_price); });
+
+                trendChart.setOption({
+                    title: null,
+                    tooltip: { trigger: 'axis', formatter: '{b}<br/>预测均价: {c} 元/㎡' },
+                    xAxis: { type: 'category', data: dates },
+                    yAxis: { type: 'value', name: '元/㎡' },
+                    series: [{
+                        type: 'line',
+                        data: prices,
+                        smooth: true,
+                        areaStyle: { color: 'rgba(25, 118, 210, 0.1)' },
+                        lineStyle: { color: '#1976d2', width: 3 },
+                        itemStyle: { color: '#1976d2' }
+                    }],
+                    grid: { left: '10%', right: '5%', bottom: '10%' }
+                });
+
+                // 显示最新预测结果
+                var latest = data[data.length - 1];
+                var trendIcon = latest.trend === '上涨' ? '↑' : (latest.trend === '下跌' ? '↓' : '→');
+                var trendColor = latest.trend === '上涨' ? 'text-danger' : (latest.trend === '下跌' ? 'text-success' : 'text-warning');
+
+                document.getElementById('predictionResult').innerHTML =
+                    '<div class="text-center">' +
+                    '<h3 class="' + trendColor + '">' + trendIcon + ' ' + latest.trend + '</h3>' +
+                    '<h4>' + Math.round(latest.avg_price) + ' <small>元/㎡</small></h4>' +
+                    '<p class="text-muted">预测日期: ' + latest.predict_date + '</p>' +
+                    (latest.change_rate ? '<p>变化率: <span class="' + trendColor + '">' + latest.change_rate + '%</span></p>' : '') +
+                    (latest.confidence ? '<p>置信度: ' + (latest.confidence * 100).toFixed(1) + '%</p>' : '') +
+                    '</div>';
+            });
+    }
+
+    document.getElementById('citySelect').addEventListener('change', function() {
+        loadDistricts(this.value);
+    });
+    document.getElementById('predictBtn').addEventListener('click', loadPrediction);
+
+    // 初始加载
+    loadDistricts(document.getElementById('citySelect').value);
+
+    window.addEventListener('resize', function() { trendChart.resize(); });
+</script>
+{% endblock %}

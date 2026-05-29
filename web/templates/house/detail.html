@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ house.title }} - 智慧房产探索平台{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home:index' %}">首页</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'house:list' %}">房源</a></li>
+        <li class="breadcrumb-item active">{{ house.title }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- 房源基本信息 -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{{ house.title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-4">
+                        <div class="text-danger fw-bold fs-2">{{ house.total_price }}<small class="fs-6">万</small></div>
+                        <div class="text-muted">总价</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold fs-2">{{ house.area }}<small class="fs-6">㎡</small></div>
+                        <div class="text-muted">建筑面积</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold fs-2">{{ house.unit_price|floatformat:0 }}<small class="fs-6">元/㎡</small></div>
+                        <div class="text-muted">单价</div>
+                    </div>
+                </div>
+
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th class="bg-light" width="20%">户型</th>
+                            <td>{{ house.layout|default:"暂无" }}</td>
+                            <th class="bg-light" width="20%">朝向</th>
+                            <td>{{ house.orientation|default:"暂无" }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">楼层</th>
+                            <td>{{ house.floor|default:"暂无" }}{% if house.total_floor %} (共{{ house.total_floor }}层){% endif %}</td>
+                            <th class="bg-light">装修</th>
+                            <td>{{ house.decoration|default:"暂无" }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">电梯</th>
+                            <td>{% if house.elevator %}有{% else %}无{% endif %}</td>
+                            <th class="bg-light">房屋年限</th>
+                            <td>{% if house.house_year %}{{ house.house_year }}年{% else %}暂无{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">挂牌日期</th>
+                            <td>{{ house.listing_date|default:"暂无" }}</td>
+                            <th class="bg-light">所在小区</th>
+                            <td>{{ house.community.name }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">所在区域</th>
+                            <td colspan="3">
+                                {{ house.community.district.city.name }} - {{ house.community.district.name }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 周边配套 -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-pin-map"></i> 周边配套</div>
+            <div class="card-body">
+                {% if facilities %}
+                <div class="row">
+                    {% regroup facilities by type as type_list %}
+                    {% for type_group in type_list %}
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-primary">
+                            {% if type_group.grouper == '交通' %}<i class="bi bi-bus-front"></i>
+                            {% elif type_group.grouper == '教育' %}<i class="bi bi-mortarboard"></i>
+                            {% elif type_group.grouper == '医疗' %}<i class="bi bi-hospital"></i>
+                            {% elif type_group.grouper == '商业' %}<i class="bi bi-shop"></i>
+                            {% else %}<i class="bi bi-tree"></i>{% endif %}
+                            {{ type_group.grouper }}
+                        </h6>
+                        <ul class="list-unstyled">
+                            {% for f in type_group.list %}
+                            <li class="mb-1">
+                                <small>{{ f.name }} {% if f.distance %}<span class="text-muted">({{ f.distance }}m)</span>{% endif %}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">暂无周边配套信息</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 侧边栏 -->
+    <div class="col-lg-4">
+        <!-- 同小区房源 -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-houses"></i> 同小区房源</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for h in similar_houses %}
+                    <a href="{% url 'house:detail' h.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <small>{{ h.layout }} | {{ h.area }}㎡</small>
+                            <span class="text-danger fw-bold">{{ h.total_price }}万</span>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-center text-muted">暂无同小区房源</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 小区信息 -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-info-circle"></i> 小区信息</div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>小区名称</th><td>{{ house.community.name }}</td></tr>
+                    {% if house.community.build_year %}<tr><th>建筑年代</th><td>{{ house.community.build_year }}年</td></tr>{% endif %}
+                    {% if house.community.property_type %}<tr><th>物业类型</th><td>{{ house.community.property_type }}</td></tr>{% endif %}
+                    {% if house.community.total_houses %}<tr><th>总户数</th><td>{{ house.community.total_houses }}户</td></tr>{% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

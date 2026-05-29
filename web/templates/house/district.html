@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ district.name }}房源 - 智慧房产探索平台{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home:index' %}">首页</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'home:city_detail' district.city.name %}">{{ district.city.name }}</a></li>
+        <li class="breadcrumb-item active">{{ district.name }}</li>
+    </ol>
+</nav>
+
+<h2 class="mb-4">{{ district.city.name }} - {{ district.name }}</h2>
+
+<!-- 区域统计 -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center bg-light">
+            <div class="card-body">
+                <h3 class="text-primary">{{ stats.house_count|default:0 }}</h3>
+                <p class="text-muted mb-0">在售房源</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center bg-light">
+            <div class="card-body">
+                <h3 class="text-danger">{{ stats.avg_price|floatformat:0|default:"--" }}</h3>
+                <p class="text-muted mb-0">均价(元/㎡)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center bg-light">
+            <div class="card-body">
+                <h3 class="text-success">{{ stats.avg_area|floatformat:1|default:"--" }}</h3>
+                <p class="text-muted mb-0">平均面积(㎡)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 房源列表 -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">房源列表</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for house in page_obj %}
+                    <a href="{% url 'house:detail' house.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ house.title }}</strong>
+                                <br><small class="text-muted">{{ house.community.name }} | {{ house.layout }} | {{ house.area }}㎡</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-danger fw-bold">{{ house.total_price }}万</span>
+                                <br><small class="text-muted">{{ house.unit_price|floatformat:0 }}元/㎡</small>
+                            </div>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-center text-muted py-4">暂无房源</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 小区列表 -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">小区列表</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for c in communities %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ c.name }}</strong>
+                            <span class="badge bg-info">{{ c.house_count }}套</span>
+                        </div>
+                        {% if c.avg_price %}<small class="text-muted">均价: {{ c.avg_price|floatformat:0 }}元/㎡</small>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
