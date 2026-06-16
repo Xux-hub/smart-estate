@@ -1,15 +1,14 @@
 import random
 from datetime import datetime, timedelta
 
-from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from web.apps.house.models import House
+from web.apps.house.models import City, RegionStat
 
 
 def prediction_index(request):
-    cities = [{'name': name} for name in House.objects.exclude(city__isnull=True).exclude(city='').values_list('city', flat=True).distinct().order_by('city')]
+    cities = [{'name': city.name} for city in City.objects.only('name').order_by('name')]
     return render(request, 'prediction/index.html', {'cities': cities})
 
 
@@ -24,31 +23,28 @@ def api_district_trend(request):
     if not region:
         return JsonResponse({'predictions': [], 'current_avg_price': None})
 
-    city_name = House.objects.filter(Q(region=region) | Q(quyu=region)).values_list('city', flat=True).first() or ''
-    predictions = _generate_realtime_predictions(city_name, region)
-    current_avg = House.objects.filter(Q(region=region) | Q(quyu=region)).aggregate(avg=Avg('unit_price'))['avg']
-    return JsonResponse({'predictions': predictions, 'current_avg_price': float(current_avg) if current_avg else None})
+    stat = RegionStat.objects.filter(region=region).order_by('-house_count').first()
+    predictions = _generate_realtime_predictions(stat.city if stat else '', region)
+    return JsonResponse({
+        'predictions': predictions,
+        'current_avg_price': float(stat.avg_unit_price) if stat and stat.avg_unit_price else None,
+    })
 
 
 def _generate_realtime_predictions(city_name, region=''):
-    queryset = House.objects.all()
+    queryset = RegionStat.objects.exclude(avg_unit_price__isnull=True)
     if city_name:
         queryset = queryset.filter(city=city_name)
     if region:
-        queryset = queryset.filter(Q(region=region) | Q(quyu=region))
-
-    district_rows = queryset.exclude(region__isnull=True).exclude(region='').values('region').annotate(
-        avg_price=Avg('unit_price'),
-        house_count=Count('id'),
-    ).filter(avg_price__isnull=False)
+        queryset = queryset.filter(region=region)
 
     predictions = []
     today = datetime.now().date()
-    for row in district_rows:
-        base_price = float(row['avg_price'])
+    for row in queryset:
+        base_price = float(row.avg_unit_price)
         for month_offset in range(1, 7):
             predict_date = today + timedelta(days=30 * month_offset)
-            random.seed(f"{row['region']}-{month_offset}-{row['house_count']}")
+            random.seed(f'{row.city}-{row.region}-{month_offset}-{row.house_count}')
             change_rate = random.uniform(-2.0, 3.5)
             predicted_price = base_price * (1 + change_rate / 100 * month_offset)
             if change_rate > 1.0:
@@ -58,7 +54,7 @@ def _generate_realtime_predictions(city_name, region=''):
             else:
                 trend = '平稳'
             predictions.append({
-                'district__name': row['region'],
+                'district__name': row.region,
                 'predict_date': predict_date.strftime('%Y-%m-%d'),
                 'avg_price': round(predicted_price, 2),
                 'trend': trend,

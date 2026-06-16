@@ -22,7 +22,7 @@ else:
     db_config = {
         'host': '127.0.0.1',
         'port': 3306,
-        'name': 'smart_estate',
+        'name': 'room-estimate',
         'user': 'root',
         'password': '',
         'charset': 'utf8mb4',
@@ -31,7 +31,7 @@ else:
 db_config = {
     'host': os.getenv('DB_HOST', db_config.get('host', '127.0.0.1')),
     'port': int(os.getenv('DB_PORT', db_config.get('port', 3306))),
-    'name': os.getenv('DB_NAME', db_config.get('name', 'smart_estate')),
+    'name': os.getenv('DB_NAME', db_config.get('name', 'room-estimate')),
     'user': os.getenv('DB_USER', db_config.get('user', 'root')),
     'password': os.getenv('DB_PASSWORD', db_config.get('password', '')),
     'charset': os.getenv('DB_CHARSET', db_config.get('charset', 'utf8mb4')),

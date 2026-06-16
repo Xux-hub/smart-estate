@@ -3,7 +3,7 @@ from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 
-from .models import House
+from .models import City, Community, District, House, RegionStat
 
 
 def house_list(request):
@@ -83,17 +83,16 @@ def search(request):
 def district_detail(request, district_id):
     region = district_id
     houses = House.objects.filter(Q(region=region) | Q(quyu=region)).order_by('-id')
-    stats = houses.aggregate(
-        avg_price=Avg('unit_price'),
-        house_count=Count('id'),
-    )
-    communities = houses.values('mingcheng').annotate(
-        house_count=Count('id'),
-        avg_price=Avg('unit_price'),
-    ).order_by('-house_count')[:50]
+    stat = RegionStat.objects.filter(region=region).order_by('-house_count').first()
+    stats = {
+        'avg_price': stat.avg_unit_price if stat else None,
+        'house_count': stat.house_count if stat else 0,
+    }
+    district_ids = list(District.objects.filter(name=region).values_list('id', flat=True))
+    communities = Community.objects.filter(district_id__in=district_ids).order_by('-house_count')[:50]
     page_obj = Paginator(houses, 20).get_page(request.GET.get('page', 1))
     context = {
-        'district': {'name': region, 'city': houses.values_list('city', flat=True).first() or ''},
+        'district': {'name': region, 'city': stat.city if stat else (houses.values_list('city', flat=True).first() or '')},
         'stats': stats,
         'communities': communities,
         'page_obj': page_obj,
@@ -110,25 +109,26 @@ def api_district_list(request):
 def api_house_map_data(request):
     city_name = request.GET.get('city', '').strip()
     region = request.GET.get('district', '').strip()
-    queryset = House.objects.exclude(jingdu__isnull=True).exclude(weidu__isnull=True)
-    if city_name:
-        queryset = queryset.filter(city=city_name)
-    if region:
-        queryset = queryset.filter(Q(region=region) | Q(quyu=region))
 
-    data = queryset.values('mingcheng', 'jingdu', 'weidu', 'region').annotate(
-        house_count=Count('id'),
-        avg_price=Avg('unit_price'),
-    )[:1000]
+    district_queryset = District.objects.all()
+    if city_name:
+        city = City.objects.filter(name=city_name).first()
+        district_queryset = district_queryset.filter(city_id=city.id if city else None)
+    if region:
+        district_queryset = district_queryset.filter(name=region)
+    district_map = {district.id: district.name for district in district_queryset.only('id', 'name')}
+    data = Community.objects.filter(
+        district_id__in=district_map.keys(),
+    ).exclude(longitude__isnull=True).exclude(latitude__isnull=True).exclude(longitude='').exclude(latitude='')[:1000]
     return JsonResponse({
         'data': [
             {
-                'name': row['mingcheng'],
-                'longitude': row['jingdu'],
-                'latitude': row['weidu'],
-                'region': row['region'],
-                'house_count': row['house_count'],
-                'avg_price': row['avg_price'],
+                'name': row.name,
+                'longitude': row.longitude,
+                'latitude': row.latitude,
+                'region': district_map.get(row.district_id, ''),
+                'house_count': row.house_count,
+                'avg_price': row.avg_unit_price,
             }
             for row in data
         ]
@@ -155,12 +155,13 @@ def _apply_house_filters(queryset, city_name='', region='', min_price='', max_pr
 
 
 def _city_options():
-    return [{'name': name} for name in House.objects.exclude(city__isnull=True).exclude(city='').values_list('city', flat=True).distinct().order_by('city')]
+    return [{'name': city.name} for city in City.objects.only('name').order_by('name')]
 
 
 def _region_options(city_name=''):
-    queryset = House.objects.all()
+    queryset = District.objects.all()
     if city_name:
-        queryset = queryset.filter(city=city_name)
-    names = queryset.exclude(region__isnull=True).exclude(region='').values_list('region', flat=True).distinct().order_by('region')
+        city = City.objects.filter(name=city_name).first()
+        queryset = queryset.filter(city_id=city.id if city else None)
+    names = queryset.values_list('name', flat=True).order_by('name')
     return [{'name': name} for name in names]

@@ -36,12 +36,6 @@ class House(models.Model):
         managed = False
         verbose_name = '房源'
         verbose_name_plural = '房源'
-        indexes = [
-            models.Index(fields=['city', 'region'], name='idx_house_city_region'),
-            models.Index(fields=['unit_price'], name='idx_house_unit_price'),
-            models.Index(fields=['mingcheng'], name='idx_house_mingcheng'),
-            models.Index(fields=['mianji_group'], name='idx_house_area_group'),
-        ]
 
     def __str__(self):
         return self.title
@@ -86,6 +80,108 @@ class House(models.Model):
     @property
     def location_label(self):
         return ' - '.join(part for part in [self.city, self.district_name, self.community_name] if part)
+
+
+class City(models.Model):
+    name = models.CharField(max_length=50)
+    province = models.CharField(max_length=50, blank=True, null=True)
+    house_count = models.IntegerField(default=0)
+    avg_unit_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    community_count = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'city'
+        managed = False
+
+    def __str__(self):
+        return self.name
+
+
+class District(models.Model):
+    city_id = models.IntegerField()
+    name = models.CharField(max_length=50)
+    house_count = models.IntegerField(default=0)
+    avg_unit_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    max_unit_price = models.IntegerField(blank=True, null=True)
+    min_unit_price = models.IntegerField(blank=True, null=True)
+    community_count = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'district'
+        managed = False
+
+    def __str__(self):
+        return self.name
+
+
+class Community(models.Model):
+    district_id = models.IntegerField()
+    name = models.CharField(max_length=200)
+    longitude = models.CharField(max_length=50, blank=True, null=True)
+    latitude = models.CharField(max_length=50, blank=True, null=True)
+    house_count = models.IntegerField(default=0)
+    avg_unit_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'community'
+        managed = False
+
+    def __str__(self):
+        return self.name
+
+
+class CityStat(models.Model):
+    city = models.CharField(max_length=50, primary_key=True)
+    house_count = models.IntegerField(default=0)
+    community_count = models.IntegerField(default=0)
+    avg_unit_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'house_city_stat'
+        managed = False
+
+
+class RegionStat(models.Model):
+    city = models.CharField(max_length=50)
+    region = models.CharField(max_length=50)
+    house_count = models.IntegerField(default=0)
+    community_count = models.IntegerField(default=0)
+    avg_unit_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    max_unit_price = models.IntegerField(blank=True, null=True)
+    min_unit_price = models.IntegerField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'house_region_stat'
+        managed = False
+
+
+class LayoutStat(models.Model):
+    city = models.CharField(max_length=50)
+    layout_name = models.CharField(max_length=100)
+    house_count = models.IntegerField(default=0)
+    avg_unit_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'house_layout_stat'
+        managed = False
+
+
+class DecorationStat(models.Model):
+    city = models.CharField(max_length=50)
+    decoration_name = models.CharField(max_length=50)
+    house_count = models.IntegerField(default=0)
+    avg_unit_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'house_decoration_stat'
+        managed = False
 
 
 def _to_decimal(value):

@@ -1,12 +1,13 @@
--- Smart Estate database initialization.
--- This script keeps existing data and creates the tables required by the
--- design document and by the current Django code.
+-- Smart Estate database initialization for the existing local database.
+-- Target database: room-estimate
+-- The project uses house_info as the detailed standard house table, and
+-- creates dimension/stat tables for faster page rendering and analysis.
 
-CREATE DATABASE IF NOT EXISTS smart_estate
+CREATE DATABASE IF NOT EXISTS `room-estimate`
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE smart_estate;
+USE `room-estimate`;
 
 CREATE TABLE IF NOT EXISTS house_info (
   id INT(11) NOT NULL AUTO_INCREMENT,
@@ -37,11 +38,109 @@ CREATE TABLE IF NOT EXISTS house_info (
   mianji_group VARCHAR(20) DEFAULT NULL COMMENT '面积分组',
   PRIMARY KEY (id),
   KEY idx_house_city_region (city, region),
-  KEY idx_house_unit_price (unit_price),
+  KEY idx_house_city_region_unit (city, region, unit_price),
+  KEY idx_house_city_layout (city, huxing),
+  KEY idx_house_city_decoration (city, zhuangxiu),
   KEY idx_house_mingcheng (mingcheng),
   KEY idx_house_area_group (mianji_group),
   KEY idx_house_link (link(191))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='标准化房源表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='标准化房源明细表';
+
+CREATE TABLE IF NOT EXISTS city (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  name VARCHAR(50) NOT NULL COMMENT '城市名称',
+  province VARCHAR(50) DEFAULT NULL COMMENT '所属省份',
+  house_count INT(11) NOT NULL DEFAULT 0 COMMENT '房源数量',
+  avg_unit_price DECIMAL(12,2) DEFAULT NULL COMMENT '平均单价',
+  community_count INT(11) NOT NULL DEFAULT 0 COMMENT '小区数量',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_city_name (name),
+  KEY idx_city_avg_price (avg_unit_price)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='城市维表';
+
+CREATE TABLE IF NOT EXISTS district (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  city_id INT(11) NOT NULL COMMENT '城市ID',
+  name VARCHAR(50) NOT NULL COMMENT '区域名称',
+  house_count INT(11) NOT NULL DEFAULT 0 COMMENT '房源数量',
+  avg_unit_price DECIMAL(12,2) DEFAULT NULL COMMENT '平均单价',
+  max_unit_price INT(11) DEFAULT NULL COMMENT '最高单价',
+  min_unit_price INT(11) DEFAULT NULL COMMENT '最低单价',
+  community_count INT(11) NOT NULL DEFAULT 0 COMMENT '小区数量',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_district_city_name (city_id, name),
+  KEY idx_district_name (name),
+  KEY idx_district_avg_price (avg_unit_price),
+  CONSTRAINT fk_district_city FOREIGN KEY (city_id) REFERENCES city(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='区域维表';
+
+CREATE TABLE IF NOT EXISTS community (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  district_id INT(11) NOT NULL COMMENT '区域ID',
+  name VARCHAR(200) NOT NULL COMMENT '小区名称',
+  longitude VARCHAR(50) DEFAULT NULL COMMENT '经度',
+  latitude VARCHAR(50) DEFAULT NULL COMMENT '纬度',
+  house_count INT(11) NOT NULL DEFAULT 0 COMMENT '房源数量',
+  avg_unit_price DECIMAL(12,2) DEFAULT NULL COMMENT '平均单价',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_community_district_name (district_id, name),
+  KEY idx_community_name (name),
+  KEY idx_community_avg_price (avg_unit_price),
+  CONSTRAINT fk_community_district FOREIGN KEY (district_id) REFERENCES district(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小区维表';
+
+CREATE TABLE IF NOT EXISTS house_city_stat (
+  city VARCHAR(50) NOT NULL COMMENT '城市',
+  house_count INT(11) NOT NULL DEFAULT 0 COMMENT '房源数量',
+  community_count INT(11) NOT NULL DEFAULT 0 COMMENT '小区数量',
+  avg_unit_price DECIMAL(12,2) DEFAULT NULL COMMENT '平均单价',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (city),
+  KEY idx_city_stat_price (avg_unit_price)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='城市统计表';
+
+CREATE TABLE IF NOT EXISTS house_region_stat (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  city VARCHAR(50) NOT NULL COMMENT '城市',
+  region VARCHAR(50) NOT NULL COMMENT '区域',
+  house_count INT(11) NOT NULL DEFAULT 0 COMMENT '房源数量',
+  community_count INT(11) NOT NULL DEFAULT 0 COMMENT '小区数量',
+  avg_unit_price DECIMAL(12,2) DEFAULT NULL COMMENT '平均单价',
+  max_unit_price INT(11) DEFAULT NULL COMMENT '最高单价',
+  min_unit_price INT(11) DEFAULT NULL COMMENT '最低单价',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_region_stat_city_region (city, region),
+  KEY idx_region_stat_city_price (city, avg_unit_price),
+  KEY idx_region_stat_region (region)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='区域统计表';
+
+CREATE TABLE IF NOT EXISTS house_layout_stat (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  city VARCHAR(50) NOT NULL COMMENT '城市',
+  layout_name VARCHAR(100) NOT NULL COMMENT '户型',
+  house_count INT(11) NOT NULL DEFAULT 0 COMMENT '数量',
+  avg_unit_price DECIMAL(12,2) DEFAULT NULL COMMENT '平均单价',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_layout_stat_city_layout (city, layout_name),
+  KEY idx_layout_city_count (city, house_count)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='户型统计表';
+
+CREATE TABLE IF NOT EXISTS house_decoration_stat (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  city VARCHAR(50) NOT NULL COMMENT '城市',
+  decoration_name VARCHAR(50) NOT NULL COMMENT '装修',
+  house_count INT(11) NOT NULL DEFAULT 0 COMMENT '数量',
+  avg_unit_price DECIMAL(12,2) DEFAULT NULL COMMENT '平均单价',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_decoration_stat_city_name (city, decoration_name),
+  KEY idx_decoration_city_count (city, house_count)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='装修统计表';
 
 CREATE TABLE IF NOT EXISTS raw_house_data (
   id INT(11) NOT NULL AUTO_INCREMENT,
