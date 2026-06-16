@@ -3,97 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}智慧房产探索平台{% endblock %}</title>
+    <title>{% block title %}智慧房源探索平台{% endblock %}</title>
     {% load static %}
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home:index' %}">
-                <i class="bi bi-house-heart-fill"></i> 智慧房产探索平台
+                <i class="bi bi-house-heart-fill"></i> 智慧房源探索平台
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'home' %}active{% endif %}" href="{% url 'home:index' %}">
-                            <i class="bi bi-speedometer2"></i> 首页大屏
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_name == 'house' %}active{% endif %}" href="{% url 'house:list' %}">
-                            <i class="bi bi-building"></i> 房源浏览
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_name == 'analysis' %}active{% endif %}" href="{% url 'analysis:index' %}">
-                            <i class="bi bi-bar-chart-line"></i> 数据分析
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_name == 'prediction' %}active{% endif %}" href="{% url 'prediction:index' %}">
-                            <i class="bi bi-graph-up-arrow"></i> 房价预测
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'crawler_index' %}active{% endif %}" href="{% url 'house:crawler_index' %}">
-                            <i class="bi bi-robot"></i> 爬虫管理
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'house:search' %}">
-                            <i class="bi bi-search"></i> 搜索
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home:index' %}"><i class="bi bi-speedometer2"></i> 首页</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'house:list' %}"><i class="bi bi-building"></i> 房源浏览</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'analysis:index' %}"><i class="bi bi-bar-chart-line"></i> 数据分析</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prediction:index' %}"><i class="bi bi-graph-up-arrow"></i> 房价预测</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'house:search' %}"><i class="bi bi-search"></i> 搜索</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="{% block main_class %}container py-4{% endblock %}">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
     <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5><i class="bi bi-house-heart-fill"></i> 智慧房产探索平台</h5>
-                    <p class="text-muted">基于大数据分析的智能房产信息服务平台</p>
-                </div>
-                <div class="col-md-3">
-                    <h6>快速链接</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="{% url 'home:index' %}" class="text-muted text-decoration-none">首页</a></li>
-                        <li><a href="{% url 'house:list' %}" class="text-muted text-decoration-none">房源浏览</a></li>
-                        <li><a href="{% url 'analysis:index' %}" class="text-muted text-decoration-none">数据分析</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
-                    <h6>技术支持</h6>
-                    <p class="text-muted small">Python + Django + MySQL + ECharts</p>
-                </div>
+        <div class="container d-flex justify-content-between flex-wrap gap-3">
+            <div>
+                <h5><i class="bi bi-house-heart-fill"></i> 智慧房源探索平台</h5>
+                <p class="text-secondary mb-0">基于 Django、MySQL 与 ECharts 的房源查询、分析和预测系统</p>
             </div>
-            <hr class="border-secondary">
-            <p class="text-center text-muted mb-0">&copy; 2024 Smart Estate. All rights reserved.</p>
+            <div class="text-secondary small">Python + Django + MySQL + ECharts</div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>

@@ -1,7 +1,7 @@
 database:
   host: 127.0.0.1
   port: 3306
-  name: smart_estate
+  name: room-estimate
   user: root
-  password: your_password_here
+  password: xxc20020125!
   charset: utf8mb4

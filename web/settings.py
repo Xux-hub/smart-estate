@@ -6,10 +6,14 @@ from pathlib import Path
 
 import yaml
 
+import pymysql
+
+pymysql.install_as_MySQLdb()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load database config
+# Load database config. Environment variables override config/database.yml.
 config_path = BASE_DIR / 'config' / 'database.yml'
 if config_path.exists():
     with open(config_path, 'r', encoding='utf-8') as f:
@@ -23,6 +27,15 @@ else:
         'password': '',
         'charset': 'utf8mb4',
     }
+
+db_config = {
+    'host': os.getenv('DB_HOST', db_config.get('host', '127.0.0.1')),
+    'port': int(os.getenv('DB_PORT', db_config.get('port', 3306))),
+    'name': os.getenv('DB_NAME', db_config.get('name', 'smart_estate')),
+    'user': os.getenv('DB_USER', db_config.get('user', 'root')),
+    'password': os.getenv('DB_PASSWORD', db_config.get('password', '')),
+    'charset': os.getenv('DB_CHARSET', db_config.get('charset', 'utf8mb4')),
+}
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-smart-estate-dev-key-change-in-production'
@@ -78,35 +91,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'web.wsgi.application'
 
 # Database
-# Try MySQL first, fall back to SQLite for development
-try:
-    import pymysql
-    pymysql.connect(
-        host=db_config['host'],
-        port=db_config['port'],
-        user=db_config['user'],
-        password=db_config['password'],
-    ).close()
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': db_config['name'],
-            'USER': db_config['user'],
-            'PASSWORD': db_config['password'],
-            'HOST': db_config['host'],
-            'PORT': db_config['port'],
-            'OPTIONS': {
-                'charset': db_config['charset'],
-            },
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': db_config['name'],
+        'USER': db_config['user'],
+        'PASSWORD': db_config['password'],
+        'HOST': db_config['host'],
+        'PORT': db_config['port'],
+        'OPTIONS': {
+            'charset': db_config['charset'],
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
-except Exception:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

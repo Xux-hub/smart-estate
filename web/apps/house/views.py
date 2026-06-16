@@ -1,150 +1,99 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from django.db.models import Avg, Count, Q
 from django.core.paginator import Paginator
+from django.db.models import Avg, Count, Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render
 
-from .models import House, Community, District, City, Facility
+from .models import House
 
 
 def house_list(request):
-    """房源列表页"""
-    # 筛选参数
-    city_name = request.GET.get('city', '')
-    district_id = request.GET.get('district', '')
-    min_price = request.GET.get('min_price', '')
-    max_price = request.GET.get('max_price', '')
-    min_area = request.GET.get('min_area', '')
-    max_area = request.GET.get('max_area', '')
-    layout = request.GET.get('layout', '')
-    sort_by = request.GET.get('sort', '-created_at')
+    city_name = request.GET.get('city', '').strip()
+    region = request.GET.get('district', '').strip()
+    min_price = request.GET.get('min_price', '').strip()
+    max_price = request.GET.get('max_price', '').strip()
+    min_area = request.GET.get('min_area', '').strip()
+    max_area = request.GET.get('max_area', '').strip()
+    layout = request.GET.get('layout', '').strip()
+    sort_by = request.GET.get('sort', '-id')
 
-    queryset = House.objects.filter(status=1).select_related(
-        'community__district__city'
+    queryset = _apply_house_filters(
+        House.objects.all(),
+        city_name=city_name,
+        region=region,
+        min_price=min_price,
+        max_price=max_price,
+        min_area=min_area,
+        max_area=max_area,
+        layout=layout,
     )
 
-    # 应用筛选条件
-    if city_name:
-        queryset = queryset.filter(community__district__city__name=city_name)
-    if district_id:
-        queryset = queryset.filter(community__district_id=district_id)
-    if min_price:
-        queryset = queryset.filter(total_price__gte=min_price)
-    if max_price:
-        queryset = queryset.filter(total_price__lte=max_price)
-    if min_area:
-        queryset = queryset.filter(area__gte=min_area)
-    if max_area:
-        queryset = queryset.filter(area__lte=max_area)
-    if layout:
-        queryset = queryset.filter(layout__contains=layout)
-
-    # 排序
-    allowed_sorts = ['-created_at', 'total_price', '-total_price', 'unit_price', '-unit_price', 'area', '-area']
-    if sort_by in allowed_sorts:
+    if sort_by == 'price':
+        queryset = queryset.extra(select={'price_num': 'CAST(price AS DECIMAL(10,2))'}, order_by=['price_num'])
+    elif sort_by == '-price':
+        queryset = queryset.extra(select={'price_num': 'CAST(price AS DECIMAL(10,2))'}, order_by=['-price_num'])
+    elif sort_by == 'area':
+        queryset = queryset.extra(select={'area_num': 'CAST(mianji AS DECIMAL(10,2))'}, order_by=['area_num'])
+    elif sort_by == '-area':
+        queryset = queryset.extra(select={'area_num': 'CAST(mianji AS DECIMAL(10,2))'}, order_by=['-area_num'])
+    elif sort_by in {'unit_price', '-unit_price'}:
         queryset = queryset.order_by(sort_by)
+    else:
+        queryset = queryset.order_by('-id')
 
-    # 分页
-    paginator = Paginator(queryset, 20)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-
-    # 获取城市和区域列表用于筛选
-    cities = City.objects.all()
-    districts = District.objects.all()
-    if city_name:
-        districts = districts.filter(city__name=city_name)
-
+    page_obj = Paginator(queryset, 20).get_page(request.GET.get('page', 1))
     context = {
         'page_obj': page_obj,
-        'cities': cities,
-        'districts': districts,
+        'cities': _city_options(),
+        'districts': _region_options(city_name),
         'filters': {
             'city': city_name,
-            'district': district_id,
+            'district': region,
             'min_price': min_price,
             'max_price': max_price,
             'min_area': min_area,
             'max_area': max_area,
             'layout': layout,
             'sort': sort_by,
-        }
+        },
     }
     return render(request, 'house/list.html', context)
 
 
 def house_detail(request, house_id):
-    """房源详情页"""
-    house = get_object_or_404(
-        House.objects.select_related('community__district__city'),
-        id=house_id
-    )
-    # 获取同小区其他房源
-    similar_houses = House.objects.filter(
-        community=house.community, status=1
-    ).exclude(id=house.id)[:5]
-
-    # 获取周边配套
-    facilities = Facility.objects.filter(community=house.community)
-
-    context = {
-        'house': house,
-        'similar_houses': similar_houses,
-        'facilities': facilities,
-    }
-    return render(request, 'house/detail.html', context)
+    house = get_object_or_404(House, id=house_id)
+    similar_houses = House.objects.filter(mingcheng=house.mingcheng).exclude(id=house.id)[:5]
+    return render(request, 'house/detail.html', {'house': house, 'similar_houses': similar_houses})
 
 
 def search(request):
-    """房源搜索页"""
-    keyword = request.GET.get('q', '')
-    queryset = House.objects.filter(status=1).select_related(
-        'community__district__city'
-    )
-
+    keyword = request.GET.get('q', '').strip()
+    queryset = House.objects.all()
     if keyword:
         queryset = queryset.filter(
-            Q(title__contains=keyword) |
-            Q(community__name__contains=keyword) |
-            Q(community__district__name__contains=keyword)
+            Q(mingcheng__icontains=keyword)
+            | Q(region__icontains=keyword)
+            | Q(quyu__icontains=keyword)
+            | Q(huxing__icontains=keyword)
+            | Q(maidian__icontains=keyword)
         )
-
-    paginator = Paginator(queryset, 20)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'page_obj': page_obj,
-        'keyword': keyword,
-    }
-    return render(request, 'house/search.html', context)
+    page_obj = Paginator(queryset.order_by('-id'), 20).get_page(request.GET.get('page', 1))
+    return render(request, 'house/search.html', {'page_obj': page_obj, 'keyword': keyword})
 
 
 def district_detail(request, district_id):
-    """区域详情页"""
-    district = get_object_or_404(District.objects.select_related('city'), id=district_id)
-    houses = House.objects.filter(
-        community__district=district, status=1
-    ).select_related('community')
-
-    # 区域统计
+    region = district_id
+    houses = House.objects.filter(Q(region=region) | Q(quyu=region)).order_by('-id')
     stats = houses.aggregate(
         avg_price=Avg('unit_price'),
         house_count=Count('id'),
-        avg_area=Avg('area'),
     )
-
-    # 小区列表
-    communities = Community.objects.filter(district=district).annotate(
-        house_count=Count('houses', filter=Q(houses__status=1)),
-        avg_price=Avg('houses__unit_price', filter=Q(houses__status=1)),
-    )
-
-    paginator = Paginator(houses, 20)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-
+    communities = houses.values('mingcheng').annotate(
+        house_count=Count('id'),
+        avg_price=Avg('unit_price'),
+    ).order_by('-house_count')[:50]
+    page_obj = Paginator(houses, 20).get_page(request.GET.get('page', 1))
     context = {
-        'district': district,
+        'district': {'name': region, 'city': houses.values_list('city', flat=True).first() or ''},
         'stats': stats,
         'communities': communities,
         'page_obj': page_obj,
@@ -152,33 +101,66 @@ def district_detail(request, district_id):
     return render(request, 'house/district.html', context)
 
 
-# API views for AJAX requests
 def api_district_list(request):
-    """获取城市下的区域列表 (AJAX)"""
-    city_name = request.GET.get('city', '')
-    if city_name:
-        districts = District.objects.filter(city__name=city_name).values('id', 'name')
-        return JsonResponse({'districts': list(districts)})
-    return JsonResponse({'districts': []})
+    city_name = request.GET.get('city', '').strip()
+    districts = _region_options(city_name)
+    return JsonResponse({'districts': [{'id': item['name'], 'name': item['name']} for item in districts]})
 
 
 def api_house_map_data(request):
-    """获取房源地图数据 (AJAX)"""
-    city_name = request.GET.get('city', '')
-    district_id = request.GET.get('district', '')
-
-    communities = Community.objects.filter(
-        longitude__isnull=False, latitude__isnull=False
-    )
-
+    city_name = request.GET.get('city', '').strip()
+    region = request.GET.get('district', '').strip()
+    queryset = House.objects.exclude(jingdu__isnull=True).exclude(weidu__isnull=True)
     if city_name:
-        communities = communities.filter(district__city__name=city_name)
-    if district_id:
-        communities = communities.filter(district_id=district_id)
+        queryset = queryset.filter(city=city_name)
+    if region:
+        queryset = queryset.filter(Q(region=region) | Q(quyu=region))
 
-    communities = communities.annotate(
-        house_count=Count('houses', filter=Q(houses__status=1)),
-        avg_price=Avg('houses__unit_price', filter=Q(houses__status=1)),
-    ).values('name', 'longitude', 'latitude', 'house_count', 'avg_price')
+    data = queryset.values('mingcheng', 'jingdu', 'weidu', 'region').annotate(
+        house_count=Count('id'),
+        avg_price=Avg('unit_price'),
+    )[:1000]
+    return JsonResponse({
+        'data': [
+            {
+                'name': row['mingcheng'],
+                'longitude': row['jingdu'],
+                'latitude': row['weidu'],
+                'region': row['region'],
+                'house_count': row['house_count'],
+                'avg_price': row['avg_price'],
+            }
+            for row in data
+        ]
+    })
 
-    return JsonResponse({'data': list(communities)})
+
+def _apply_house_filters(queryset, city_name='', region='', min_price='', max_price='', min_area='', max_area='', layout=''):
+    if city_name:
+        queryset = queryset.filter(city=city_name)
+    if region:
+        queryset = queryset.filter(Q(region=region) | Q(quyu=region))
+    if layout:
+        queryset = queryset.filter(huxing__icontains=layout)
+    if min_price:
+        queryset = queryset.extra(where=['CAST(price AS DECIMAL(10,2)) >= %s'], params=[min_price])
+    if max_price:
+        queryset = queryset.extra(where=['CAST(price AS DECIMAL(10,2)) <= %s'], params=[max_price])
+    if min_area or max_area:
+        if min_area:
+            queryset = queryset.extra(where=['CAST(mianji AS DECIMAL(10,2)) >= %s'], params=[min_area])
+        if max_area:
+            queryset = queryset.extra(where=['CAST(mianji AS DECIMAL(10,2)) <= %s'], params=[max_area])
+    return queryset
+
+
+def _city_options():
+    return [{'name': name} for name in House.objects.exclude(city__isnull=True).exclude(city='').values_list('city', flat=True).distinct().order_by('city')]
+
+
+def _region_options(city_name=''):
+    queryset = House.objects.all()
+    if city_name:
+        queryset = queryset.filter(city=city_name)
+    names = queryset.exclude(region__isnull=True).exclude(region='').values_list('region', flat=True).distinct().order_by('region')
+    return [{'name': name} for name in names]
