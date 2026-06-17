@@ -3,88 +3,612 @@
 {% block title %}房价预测 - 智慧房源探索平台{% endblock %}
 
 {% block content %}
-<h2 class="mb-4"><i class="bi bi-graph-up-arrow text-primary"></i> 房价预测</h2>
+
+<h2 class="mb-4">
+    <i class="bi bi-graph-up-arrow text-primary"></i>
+    房价预测
+</h2>
 
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label">选择城市</label>
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">城市</label>
                 <select id="citySelect" class="form-select">
                     {% for city in cities %}
-                    <option value="{{ city.name }}">{{ city.name }}</option>
+                    <option value="{{ city }}">{{ city }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label">选择区域</label>
-                <select id="districtSelect" class="form-select"><option value="">全部区域</option></select>
+
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">区域</label>
+                <select id="districtSelect" class="form-select">
+                    {% for region in regions %}
+                    <option value="{{ region }}">{{ region }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="col-md-2">
-                <button id="predictBtn" class="btn btn-primary w-100">查看预测</button>
+
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">建筑面积</label>
+                <input
+                    id="areaInput"
+                    type="number"
+                    min="10"
+                    max="1000"
+                    step="0.1"
+                    value="90"
+                    class="form-control"
+                >
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">户型</label>
+                <select id="layoutSelect" class="form-select">
+                    {% for item in layouts %}
+                    <option value="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">朝向</label>
+                <select id="orientationSelect" class="form-select">
+                    {% for item in orientations %}
+                    <option value="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label">装修情况</label>
+                <select id="decorationSelect" class="form-select">
+                    {% for item in decorations %}
+                    <option value="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <button
+                    id="predictButton"
+                    class="btn btn-primary w-100"
+                >
+                    开始预测
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-lg-8 mb-4"><div class="card h-100"><div class="card-header">未来 6 个月均价趋势</div><div class="card-body"><div id="trendChart" style="height:400px"></div></div></div></div>
-    <div class="col-lg-4 mb-4"><div class="card h-100"><div class="card-header">预测结果</div><div class="card-body" id="predictionResult"><div class="text-center text-muted py-5">请选择城市或区域</div></div></div></div>
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                当前估值与区域平均单价
+            </div>
+            <div class="card-body">
+                <div
+                    id="currentChart"
+                    style="height: 400px;"
+                ></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                当前估值结果
+            </div>
+            <div
+                id="currentResult"
+                class="card-body"
+            >
+                <div class="text-center text-muted py-5">
+                    请选择房源条件并开始预测
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        数据截止后的未来6个月房价参考趋势
+    </div>
+    <div class="card-body">
+        <div
+            id="futureChart"
+            style="height: 460px;"
+        ></div>
+        <div
+            id="futureInfo"
+            class="d-none"
+        ></div>
+    </div>
+</div>
+
+<div
+    id="futureSummary"
+    class="row mb-4"
+></div>
+
 {% endblock %}
 
 {% block extra_js %}
-<script>
-const trendChart = echarts.init(document.getElementById('trendChart'));
 
-function loadDistricts(city) {
-    fetch('/house/api/districts/?city=' + encodeURIComponent(city)).then((r) => r.json()).then((data) => {
-        const select = document.getElementById('districtSelect');
-        select.innerHTML = '<option value="">全部区域</option>';
-        data.districts.forEach((d) => {
-            const opt = document.createElement('option');
-            opt.value = d.id;
-            opt.textContent = d.name;
-            select.appendChild(opt);
-        });
+<script>
+const currentChart = echarts.init(
+    document.getElementById('currentChart')
+);
+
+const futureChart = echarts.init(
+    document.getElementById('futureChart')
+);
+
+function formatNumber(value, digits = 0) {
+    if (
+        value === null
+        || value === undefined
+        || Number.isNaN(Number(value))
+    ) {
+        return '暂无';
+    }
+
+    return Number(value).toLocaleString(
+        'zh-CN',
+        {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits
+        }
+    );
+}
+
+function showError(message) {
+    currentChart.clear();
+    futureChart.clear();
+
+    document.getElementById(
+        'currentResult'
+    ).innerHTML =
+        '<div class="alert alert-danger mb-0">'
+        + message
+        + '</div>';
+
+    document.getElementById(
+        'futureSummary'
+    ).innerHTML = '';
+
+    document.getElementById(
+        'futureInfo'
+    ).textContent = '';
+}
+
+function drawCurrentChart(data) {
+    currentChart.clear();
+
+    currentChart.setOption({
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        xAxis: {
+            type: 'category',
+            data: [
+                '区域平均单价',
+                '当前预测单价'
+            ]
+        },
+        yAxis: {
+            type: 'value',
+            name: '元/㎡'
+        },
+        series: [
+            {
+                type: 'bar',
+                barWidth: '45%',
+                data: [
+                    data.region_average_unit_price,
+                    data.predicted_unit_price
+                ]
+            }
+        ],
+        grid: {
+            left: '12%',
+            right: '6%',
+            bottom: '12%'
+        }
     });
 }
 
-function loadPrediction() {
-    const city = document.getElementById('citySelect').value;
-    const district = document.getElementById('districtSelect').value;
-    let url = '/prediction/api/data/?city=' + encodeURIComponent(city);
-    if (district) url += '&district=' + encodeURIComponent(district);
+function drawFutureChart(data) {
+    const history = data.history || [];
+    const future = data.future || [];
 
-    fetch(url).then((r) => r.json()).then((res) => {
-        const data = res.data;
-        if (!data.length) {
-            trendChart.setOption({ title: { text: '暂无预测数据', left: 'center', top: 'middle' }, xAxis: { show: false }, yAxis: { show: false }, series: [] });
-            document.getElementById('predictionResult').innerHTML = '<div class="text-center text-muted py-5">暂无可用于预测的数据</div>';
+    const months = history
+        .map(item => item.month)
+        .concat(
+            future.map(item => item.month)
+        );
+
+    const historyValues = history
+        .map(item => item.region_unit_price)
+        .concat(
+            new Array(future.length).fill(null)
+        );
+
+    const emptyBefore = new Array(
+        Math.max(history.length - 1, 0)
+    ).fill(null);
+
+    const lastHistoryPrice =
+        history.length > 0
+            ? history[history.length - 1].region_unit_price
+            : null;
+
+    const regionFutureValues = emptyBefore
+        .concat([lastHistoryPrice])
+        .concat(
+            future.map(item => item.region_unit_price)
+        );
+
+    const houseFutureValues = emptyBefore
+        .concat([data.predicted_unit_price])
+        .concat(
+            future.map(item => item.house_unit_price)
+        );
+
+    futureChart.clear();
+
+    futureChart.setOption({
+        tooltip: {
+            trigger: 'axis'
+        },
+        legend: {
+            data: [
+                '历史区域单价',
+                '区域未来趋势',
+                '具体房屋未来单价'
+            ]
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: months
+        },
+        yAxis: {
+            type: 'value',
+            name: '元/㎡',
+            scale: true
+        },
+        series: [
+            {
+                name: '历史区域单价',
+                type: 'line',
+                smooth: true,
+                data: historyValues
+            },
+            {
+                name: '区域未来趋势',
+                type: 'line',
+                smooth: true,
+                lineStyle: {
+                    type: 'dashed'
+                },
+                data: regionFutureValues
+            },
+            {
+                name: '具体房屋未来单价',
+                type: 'line',
+                smooth: true,
+                lineStyle: {
+                    type: 'dashed'
+                },
+                data: houseFutureValues
+            }
+        ],
+        grid: {
+            left: '10%',
+            right: '6%',
+            bottom: '12%'
+        }
+    });
+}
+
+function showCurrentResult(data) {
+    let comparisonText = '暂无区域均价';
+
+    if (
+        data.difference !== null
+        && data.difference_rate !== null
+    ) {
+        const direction =
+            data.difference >= 0
+                ? '高于'
+                : '低于';
+
+        comparisonText =
+            direction
+            + '区域均价 '
+            + formatNumber(
+                Math.abs(data.difference),
+                0
+            )
+            + ' 元/㎡，差异 '
+            + formatNumber(
+                Math.abs(data.difference_rate),
+                2
+            )
+            + '%';
+    }
+
+    document.getElementById(
+        'currentResult'
+    ).innerHTML =
+        '<div class="text-center mb-4">'
+        + '<div class="text-muted">当前预测单价</div>'
+        + '<h2 class="text-primary">'
+        + formatNumber(
+            data.predicted_unit_price,
+            0
+        )
+        + ' <small class="fs-6">元/㎡</small>'
+        + '</h2>'
+        + '<div class="text-muted">当前预测总价</div>'
+        + '<h4>'
+        + formatNumber(
+            data.predicted_total_price,
+            2
+        )
+        + ' 万元</h4>'
+        + '</div>'
+        + '<hr>'
+        + '<p><strong>区域平均单价：</strong>'
+        + formatNumber(
+            data.region_average_unit_price,
+            0
+        )
+        + ' 元/㎡</p>'
+        + '<p class="mb-0"><strong>价格对比：</strong>'
+        + comparisonText
+        + '</p>';
+}
+
+function showFutureSummary(data) {
+    const summary = data.future_summary;
+    const change = Number(
+        summary.six_month_change_rate
+    );
+
+    const changeText =
+        (change >= 0 ? '+' : '')
+        + formatNumber(change, 2)
+        + '%';
+
+    document.getElementById(
+        'futureSummary'
+    ).innerHTML =
+        '<div class="col-md-3 mb-3">'
+        + '<div class="card h-100"><div class="card-body text-center">'
+        + '<div class="text-muted">未来1个月</div>'
+        + '<h5>'
+        + formatNumber(
+            summary.month_1_unit_price,
+            0
+        )
+        + ' 元/㎡</h5>'
+        + '<div>'
+        + formatNumber(
+            summary.month_1_total_price,
+            2
+        )
+        + ' 万元</div>'
+        + '</div></div></div>'
+
+        + '<div class="col-md-3 mb-3">'
+        + '<div class="card h-100"><div class="card-body text-center">'
+        + '<div class="text-muted">未来3个月</div>'
+        + '<h5>'
+        + formatNumber(
+            summary.month_3_unit_price,
+            0
+        )
+        + ' 元/㎡</h5>'
+        + '<div>'
+        + formatNumber(
+            summary.month_3_total_price,
+            2
+        )
+        + ' 万元</div>'
+        + '</div></div></div>'
+
+        + '<div class="col-md-3 mb-3">'
+        + '<div class="card h-100"><div class="card-body text-center">'
+        + '<div class="text-muted">未来6个月</div>'
+        + '<h5>'
+        + formatNumber(
+            summary.month_6_unit_price,
+            0
+        )
+        + ' 元/㎡</h5>'
+        + '<div>'
+        + formatNumber(
+            summary.month_6_total_price,
+            2
+        )
+        + ' 万元</div>'
+        + '</div></div></div>'
+
+        + '<div class="col-md-3 mb-3">'
+        + '<div class="card h-100"><div class="card-body text-center">'
+        + '<div class="text-muted">6个月趋势</div>'
+        + '<h5>'
+        + summary.trend
+        + '</h5>'
+        + '<div>累计变化 '
+        + changeText
+        + '</div>'
+        + '</div></div></div>';
+
+    const metrics = data.trend_metrics || {};
+
+    const mape =
+        metrics.mape !== null
+        && metrics.mape !== undefined
+            ? formatNumber(metrics.mape, 2)
+            : '暂无';
+
+    const r2 =
+        metrics.r2 !== null
+        && metrics.r2 !== undefined
+            ? formatNumber(metrics.r2, 4)
+            : '暂无';
+
+    const fallbackText =
+        data.used_fallback
+            ? '区域趋势测试不稳定，已采用青岛整体趋势'
+            : '采用该区域自身趋势';
+
+    document.getElementById(
+        'futureInfo'
+    ).textContent =
+        '历史数据截止月份：'
+        + data.data_end_month
+        + '；趋势来源：'
+        + data.trend_source
+        + '；'
+        + fallbackText
+        + '；趋势模型MAPE：'
+        + mape
+        + '%，R²：'
+        + r2
+        + '。结果为数据截止月份之后的价格参考趋势，不代表实际成交价格。';
+}
+
+
+function removeTrendHint() {
+    const keywords = [
+        '????????',
+        '????',
+        '????MAPE',
+        '??????????????????'
+    ];
+
+    const nodes = document.querySelectorAll('p, div, span, small');
+
+    nodes.forEach(node => {
+        const content = (node.textContent || '').trim();
+        if (!content) {
             return;
         }
-        trendChart.setOption({
-            tooltip: { trigger: 'axis' },
-            xAxis: { type: 'category', data: data.map((d) => d.predict_date) },
-            yAxis: { type: 'value', name: '元/㎡' },
-            series: [{ type: 'line', smooth: true, data: data.map((d) => Number(d.avg_price)), lineStyle: { color: '#2563eb', width: 3 }, areaStyle: { color: 'rgba(37,99,235,.12)' } }],
-            grid: { left: '10%', right: '5%', bottom: '10%' }
-        });
-        const latest = data[data.length - 1];
-        document.getElementById('predictionResult').innerHTML =
-            '<div class="text-center">' +
-            '<h3>' + latest.trend + '</h3>' +
-            '<h4>' + Math.round(latest.avg_price) + ' <small>元/㎡</small></h4>' +
-            '<p class="text-muted">预测日期: ' + latest.predict_date + '</p>' +
-            '<p>变化率: ' + latest.change_rate + '%</p>' +
-            '<p>置信度: ' + (latest.confidence * 100).toFixed(1) + '%</p>' +
-            '</div>';
+
+        const matched = keywords.some(keyword => content.includes(keyword));
+        if (matched) {
+            node.remove();
+        }
     });
 }
 
-document.getElementById('citySelect').addEventListener('change', function() { loadDistricts(this.value); });
-document.getElementById('predictBtn').addEventListener('click', loadPrediction);
-if (document.getElementById('citySelect').value) loadDistricts(document.getElementById('citySelect').value);
-window.addEventListener('resize', () => trendChart.resize());
+function startPrediction() {
+    const city = document.getElementById(
+        'citySelect'
+    ).value;
+
+    const district = document.getElementById(
+        'districtSelect'
+    ).value;
+
+    const area = document.getElementById(
+        'areaInput'
+    ).value;
+
+    const huxing = document.getElementById(
+        'layoutSelect'
+    ).value;
+
+    const chaoxiang = document.getElementById(
+        'orientationSelect'
+    ).value;
+
+    const zhuangxiu = document.getElementById(
+        'decorationSelect'
+    ).value;
+
+    if (!district) {
+        showError('请选择区域');
+        return;
+    }
+
+    if (!area || Number(area) <= 0) {
+        showError('请输入正确的建筑面积');
+        return;
+    }
+
+    const parameters = new URLSearchParams({
+        city,
+        district,
+        area,
+        huxing,
+        chaoxiang,
+        zhuangxiu
+    });
+
+    const button = document.getElementById(
+        'predictButton'
+    );
+
+    button.disabled = true;
+    button.textContent = '预测中';
+
+    fetch(
+        '/prediction/api/data/?'
+        + parameters.toString()
+    )
+    .then(async response => {
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.error || '预测请求失败'
+            );
+        }
+
+        return result.data;
+    })
+    .then(data => {
+        drawCurrentChart(data);
+        drawFutureChart(data);
+        showCurrentResult(data);
+        showFutureSummary(data);
+        removeTrendHint();
+    })
+    .catch(error => {
+        showError(error.message);
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.textContent = '开始预测';
+    });
+}
+
+document.getElementById(
+    'predictButton'
+).addEventListener(
+    'click',
+    startPrediction
+);
+
+window.addEventListener(
+    'resize',
+    () => {
+        currentChart.resize();
+        futureChart.resize();
+    }
+);
 </script>
+
 {% endblock %}

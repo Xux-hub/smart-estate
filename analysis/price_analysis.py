@@ -27,17 +27,29 @@ def get_db_connection():
 
 def load_house_data(city=None):
     conn = get_db_connection()
-    sql = 'SELECT * FROM house_info WHERE 1=1'
+    sql = "SELECT * FROM house_info WHERE 1=1"
     params = []
+
     if city:
-        sql += ' AND city = %s'
+        sql += " AND city = %s"
         params.append(city)
-    df = pd.read_sql(sql, conn, params=params)
-    conn.close()
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(sql, params)
+            rows = cursor.fetchall()
+        df = pd.DataFrame(rows)
+    finally:
+        conn.close()
+
     if not df.empty:
-        df['total_price'] = df['price'].apply(_number)
-        df['area'] = df['mianji'].apply(_number)
-        df['unit_price'] = pd.to_numeric(df['unit_price'], errors='coerce')
+        df["total_price"] = df["price"].apply(_number)
+        df["area"] = df["mianji"].apply(_number)
+        df["unit_price"] = pd.to_numeric(
+            df["unit_price"],
+            errors="coerce",
+        )
+
     return df
 
 
