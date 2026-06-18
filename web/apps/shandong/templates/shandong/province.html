@@ -63,26 +63,33 @@
 
     .province-layout {
         display: grid;
-        grid-template-columns: 252px minmax(0, 1fr) 360px;
+        grid-template-columns: 330px minmax(720px, 1fr) 340px;
         gap: 18px;
         min-height: calc(100vh - 178px);
-        padding: 0 18px 24px 0;
+        padding: 0 18px 24px;
         align-items: start;
     }
 
     .left-rail,
-    .right-rail {
+    .right-rail,
+    .center-stage {
         min-width: 0;
         display: grid;
         gap: 14px;
         align-content: start;
     }
 
+    .center-stage {
+        grid-template-columns: 220px minmax(0, 1fr);
+        align-items: start;
+    }
+
     .aside {
         background-color: #fff;
         box-shadow: 0 2px 8px 0 #11234512;
         overflow-y: auto;
-        max-height: 360px;
+        height: 760px;
+        border-radius: 4px;
     }
 
     .aside_title {
@@ -214,14 +221,13 @@
         height: 360px;
     }
 
-    @media (max-width: 1280px) {
+    @media (max-width: 1500px) {
         .province-layout {
-            grid-template-columns: 252px minmax(0, 1fr);
-            padding-right: 18px;
+            grid-template-columns: 1fr;
         }
 
+        .left-rail,
         .right-rail {
-            grid-column: 1 / -1;
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
@@ -232,6 +238,8 @@
 
     @media (max-width: 992px) {
         .province-layout,
+        .left-rail,
+        .center-stage,
         .right-rail {
             grid-template-columns: 1fr;
         }
@@ -241,6 +249,7 @@
         }
 
         .aside {
+            height: auto;
             max-height: 260px;
         }
 
@@ -266,18 +275,7 @@
 
     <div class="province-layout">
         <div class="left-rail">
-            <aside class="aside">
-                <div class="aside_title">山东省</div>
-                <div class="aside_content" id="cityList">
-                    {% for city in cities %}
-                    <a href="{% url 'shandong:city' city.name %}">
-                        {{ city.name }}
-                        <span class="city-stat">{{ city.house_count }}套</span>
-                    </a>
-                    {% endfor %}
-                </div>
-            </aside>
-
+            <h2 class="section-heading">山东省房源扩展分析</h2>
             <article class="panel">
                 <div class="panel-title">各城市房价描述性统计</div>
                 <div class="stats-table-wrap">
@@ -310,12 +308,25 @@
             </article>
         </div>
 
-        <div class="map">
-            <div id="city_map"></div>
+        <div class="center-stage">
+            <aside class="aside">
+                <div class="aside_title">山东省</div>
+                <div class="aside_content" id="cityList">
+                    {% for city in cities %}
+                    <a href="{% url 'shandong:city' city.name %}">
+                        {{ city.name }}
+                        <span class="city-stat">{{ city.house_count }}套</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </aside>
+
+            <div class="map">
+                <div id="city_map"></div>
+            </div>
         </div>
 
         <section class="analysis-section right-rail">
-            <h2 class="section-heading">山东省房源扩展分析</h2>
             <article class="panel">
                 <div class="panel-title">高端小区分布</div>
                 <div id="highEndChart" class="analysis-chart is-tall"></div>
