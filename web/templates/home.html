@@ -158,13 +158,14 @@
     .word-cloud {
         height: calc(100% - 40px);
         min-height: 0;
-        padding: 18px;
+        padding: 18px 22px;
         display: flex;
         align-content: center;
         align-items: center;
         justify-content: center;
         flex-wrap: wrap;
-        gap: 12px 18px;
+        gap: 8px 12px;
+        overflow: hidden;
     }
 
     .word-cloud a {
@@ -434,9 +435,9 @@ fetch("{% static 'data/shandong_geo.json' %}")
 const wordCloud = document.getElementById('communityWordCloud');
 const maxWord = Math.max(1, ...communityWords.map((item) => item.value || 0));
 const colors = ['#facc15', '#38bdf8', '#22c55e', '#f97316', '#a78bfa', '#eab308', '#06b6d4'];
-wordCloud.innerHTML = communityWords.slice(0, 60).map((item, index) => {
+wordCloud.innerHTML = communityWords.slice(0, 24).map((item, index) => {
     const ratio = (item.value || 0) / maxWord;
-    const size = 13 + Math.round(ratio * 30);
+    const size = 12 + Math.round(ratio * 16);
     const color = colors[index % colors.length];
     const searchUrl = "{% url 'house:search' %}?q=" + encodeURIComponent(item.name);
     return '<a href="' + searchUrl + '" title="' + item.name + '：' + item.value + '套，点击搜索" style="--word-size:' + size + 'px;--word-color:' + color + ';">' + item.name + '</a>';
