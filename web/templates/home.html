@@ -30,7 +30,7 @@
 
     .stat-card {
         height: 100%;
-        padding: 18px 18px;
+        padding: 18px;
         background: rgba(255, 255, 255, .13);
         border: 1px solid rgba(255, 255, 255, .24);
         border-radius: 8px;
@@ -177,16 +177,67 @@
         font-weight: 800;
     }
 
-    .chart-image-wrap {
-        padding: 16px;
-        background: #fff;
+    .interactive-chart {
+        height: 360px;
+        padding: 12px;
     }
 
-    .chart-image-wrap img {
-        display: block;
+    .interactive-chart.is-tall {
+        height: 460px;
+    }
+
+    .stats-table-wrap {
+        padding: 16px;
+        max-height: 430px;
+        overflow: auto;
+    }
+
+    .stats-table {
         width: 100%;
-        max-height: 520px;
-        object-fit: contain;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .stats-table th,
+    .stats-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #edf1f6;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .stats-table th:first-child,
+    .stats-table td:first-child {
+        text-align: left;
+    }
+
+    .stats-table th {
+        color: #374151;
+        background: #f8fafc;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .word-cloud {
+        min-height: 360px;
+        padding: 22px;
+        display: flex;
+        align-content: center;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px 18px;
+    }
+
+    .word-cloud span {
+        display: inline-flex;
+        align-items: center;
+        line-height: 1.1;
+        color: var(--word-color);
+        font-size: var(--word-size);
+        font-weight: 800;
+        opacity: .92;
     }
 
     .quick-chart {
@@ -313,25 +364,97 @@
         <div class="section-heading">
             <div>
                 <h2>山东房源核心图表</h2>
-                <p>整合任务要求的描述性统计、房源数量、均价、挂牌趋势、高端小区和热门小区词云。</p>
+                <p>这些板块直接使用数据库统计结果渲染，可悬停查看数值，不再使用静态图片。</p>
             </div>
         </div>
 
         <div class="chart-grid">
-            {% for chart in shandong_charts %}
-            <article class="panel chart-card {% if chart.wide %}is-wide{% endif %}">
+            <article class="panel chart-card is-wide">
                 <div class="chart-card-header">
                     <div>
-                        <h3 class="chart-card-title">{{ chart.title }}</h3>
-                        <p class="chart-card-desc">{{ chart.description }}</p>
+                        <h3 class="chart-card-title">各城市房价描述性统计</h3>
+                        <p class="chart-card-desc">对比各城市房源数量、小区数量和平均单价。</p>
                     </div>
-                    <span class="chart-number">{{ chart.number }}</span>
+                    <span class="chart-number">01</span>
                 </div>
-                <div class="chart-image-wrap">
-                    <img src="{% url chart.url_name %}" alt="{{ chart.title }}" loading="lazy">
+                <div class="stats-table-wrap">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>城市</th>
+                                <th>房源数量</th>
+                                <th>小区数量</th>
+                                <th>平均单价</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for city in city_stats %}
+                            <tr>
+                                <td>{{ city.name }}</td>
+                                <td>{{ city.house_count }} 套</td>
+                                <td>{{ city.community_count }} 个</td>
+                                <td>{{ city.avg_unit_price|floatformat:0 }} 元/㎡</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </article>
-            {% endfor %}
+
+            <article class="panel chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h3 class="chart-card-title">各城市房源数量</h3>
+                        <p class="chart-card-desc">按城市比较房源供给规模。</p>
+                    </div>
+                    <span class="chart-number">02</span>
+                </div>
+                <div id="housingCountChart" class="interactive-chart"></div>
+            </article>
+
+            <article class="panel chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h3 class="chart-card-title">各城市平均房价</h3>
+                        <p class="chart-card-desc">按城市展示二手房平均单价。</p>
+                    </div>
+                    <span class="chart-number">03</span>
+                </div>
+                <div id="avgPriceChart" class="interactive-chart"></div>
+            </article>
+
+            <article class="panel chart-card is-wide">
+                <div class="chart-card-header">
+                    <div>
+                        <h3 class="chart-card-title">月度挂牌趋势</h3>
+                        <p class="chart-card-desc">观察挂牌量随月份变化的节奏。</p>
+                    </div>
+                    <span class="chart-number">04</span>
+                </div>
+                <div id="listingTrendChart" class="interactive-chart"></div>
+            </article>
+
+            <article class="panel chart-card is-wide">
+                <div class="chart-card-header">
+                    <div>
+                        <h3 class="chart-card-title">高端小区分布</h3>
+                        <p class="chart-card-desc">展示单价 60000 元/㎡以上的小区分布和均价。</p>
+                    </div>
+                    <span class="chart-number">10</span>
+                </div>
+                <div id="highEndChart" class="interactive-chart is-tall"></div>
+            </article>
+
+            <article class="panel chart-card is-wide">
+                <div class="chart-card-header">
+                    <div>
+                        <h3 class="chart-card-title">热门小区词云</h3>
+                        <p class="chart-card-desc">按小区名称出现频次动态生成词云标签。</p>
+                    </div>
+                    <span class="chart-number">11</span>
+                </div>
+                <div id="communityWordCloud" class="word-cloud"></div>
+            </article>
         </div>
     </section>
 
@@ -362,8 +485,15 @@
 
 {% block extra_js %}
 {{ city_stats|json_script:"city-stats-data" }}
+{{ monthly_trend|json_script:"monthly-trend-data" }}
+{{ high_end_communities|json_script:"high-end-data" }}
+{{ community_words|json_script:"community-words-data" }}
 <script>
 const cityData = JSON.parse(document.getElementById('city-stats-data').textContent);
+const monthlyTrend = JSON.parse(document.getElementById('monthly-trend-data').textContent);
+const highEndCommunities = JSON.parse(document.getElementById('high-end-data').textContent);
+const communityWords = JSON.parse(document.getElementById('community-words-data').textContent);
+
 const cityByName = new Map(cityData.map((item) => [item.name, item]));
 const cityNames = cityData.map((item) => item.name);
 const cityPrices = cityData.map((item) => Math.round(item.avg_unit_price || 0));
@@ -371,7 +501,7 @@ const cityCounts = cityData.map((item) => ({ name: item.name, value: item.house_
 const maxHouseCount = Math.max(1, ...cityData.map((item) => item.house_count || 0));
 
 function plainCityName(name) {
-    return String(name || '').replace(/市$/, '');
+    return String(name || '').replace(/市$/, '').replace(/甯?/, '');
 }
 
 function formatNumber(value) {
@@ -380,6 +510,10 @@ function formatNumber(value) {
 
 function cityOverviewUrl(cityName) {
     return '/city/' + encodeURIComponent(cityName) + '/';
+}
+
+function baseGrid() {
+    return { left: 58, right: 24, top: 42, bottom: 64 };
 }
 
 fetch("{% static 'data/shandong_geo.json' %}")
@@ -427,9 +561,7 @@ fetch("{% static 'data/shandong_geo.json' %}")
                 inRange: {
                     color: ['#e8f2ff', '#9cc9ff', '#4f8df7', '#1d4ed8']
                 },
-                textStyle: {
-                    color: '#4b5563'
-                }
+                textStyle: { color: '#4b5563' }
             },
             series: [{
                 name: '山东城市房源',
@@ -443,36 +575,109 @@ fetch("{% static 'data/shandong_geo.json' %}")
                     show: true,
                     color: '#1f2937',
                     fontSize: 12,
-                    formatter(params) {
-                        return plainCityName(params.name);
-                    }
+                    formatter(params) { return plainCityName(params.name); }
                 },
                 emphasis: {
-                    label: {
-                        color: '#0f172a',
-                        fontWeight: 700
-                    },
-                    itemStyle: {
-                        areaColor: '#facc15'
-                    }
+                    label: { color: '#0f172a', fontWeight: 700 },
+                    itemStyle: { areaColor: '#facc15' }
                 },
-                itemStyle: {
-                    borderColor: '#fff',
-                    borderWidth: 1
-                }
+                itemStyle: { borderColor: '#fff', borderWidth: 1 }
             }]
         });
 
         mapChart.on('click', (params) => {
             const data = params.data || {};
-            if (!data.hasData) {
-                return;
+            if (data.hasData) {
+                window.location.href = cityOverviewUrl(data.cityName);
             }
-            window.location.href = cityOverviewUrl(data.cityName);
         });
 
         window.addEventListener('resize', () => mapChart.resize());
     });
+
+const housingCountChart = echarts.init(document.getElementById('housingCountChart'));
+housingCountChart.setOption({
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: baseGrid(),
+    xAxis: { type: 'category', data: cityNames, axisLabel: { rotate: 30 } },
+    yAxis: { type: 'value', name: '套' },
+    series: [{
+        type: 'bar',
+        data: cityData.map((item) => item.house_count || 0),
+        itemStyle: { color: '#2563eb', borderRadius: [4, 4, 0, 0] }
+    }]
+});
+
+const avgPriceChart = echarts.init(document.getElementById('avgPriceChart'));
+avgPriceChart.setOption({
+    tooltip: { trigger: 'axis', valueFormatter: (value) => formatNumber(value) + ' 元/㎡' },
+    grid: baseGrid(),
+    xAxis: { type: 'category', data: cityNames, axisLabel: { rotate: 30 } },
+    yAxis: { type: 'value', name: '元/㎡' },
+    series: [{
+        type: 'bar',
+        data: cityPrices,
+        itemStyle: { color: '#dc2626', borderRadius: [4, 4, 0, 0] }
+    }]
+});
+
+const listingTrendChart = echarts.init(document.getElementById('listingTrendChart'));
+listingTrendChart.setOption({
+    tooltip: { trigger: 'axis' },
+    grid: { left: 58, right: 24, top: 42, bottom: 70 },
+    xAxis: { type: 'category', data: monthlyTrend.map((item) => item.month), axisLabel: { rotate: 45 } },
+    yAxis: { type: 'value', name: '套' },
+    series: [{
+        type: 'line',
+        smooth: true,
+        data: monthlyTrend.map((item) => item.count),
+        symbolSize: 7,
+        areaStyle: { color: 'rgba(37, 99, 235, .12)' },
+        lineStyle: { color: '#2563eb', width: 3 },
+        itemStyle: { color: '#2563eb' }
+    }]
+});
+
+const highEndChart = echarts.init(document.getElementById('highEndChart'));
+highEndChart.setOption({
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        formatter(params) {
+            const item = highEndCommunities[params[0].dataIndex] || {};
+            return [
+                '<strong>' + item.name + '</strong>',
+                '城市区域：' + [item.city, item.region].filter(Boolean).join(' / '),
+                '高端房源：' + formatNumber(item.count) + ' 套',
+                '平均单价：' + formatNumber(item.avg_price) + ' 元/㎡'
+            ].join('<br>');
+        }
+    },
+    grid: { left: 160, right: 44, top: 28, bottom: 28 },
+    xAxis: { type: 'value', name: '套' },
+    yAxis: {
+        type: 'category',
+        inverse: true,
+        data: highEndCommunities.map((item) => item.name),
+        axisLabel: { width: 130, overflow: 'truncate' }
+    },
+    series: [{
+        type: 'bar',
+        data: highEndCommunities.map((item) => item.count),
+        itemStyle: { color: '#f59e0b', borderRadius: [0, 4, 4, 0] },
+        label: { show: true, position: 'right' }
+    }]
+});
+
+const wordCloud = document.getElementById('communityWordCloud');
+const maxWord = Math.max(1, ...communityWords.map((item) => item.value || 0));
+const colors = ['#0f766e', '#2563eb', '#dc2626', '#7c3aed', '#ea580c', '#0891b2', '#4d7c0f'];
+wordCloud.innerHTML = communityWords.slice(0, 60).map((item, index) => {
+    const ratio = (item.value || 0) / maxWord;
+    const size = 13 + Math.round(ratio * 25);
+    const color = colors[index % colors.length];
+    return '<span title="' + item.name + '：' + item.value + '套" style="--word-size:' + size + 'px;--word-color:' + color + ';">' + item.name + '</span>';
+}).join('');
 
 const priceChart = echarts.init(document.getElementById('cityPriceChart'));
 priceChart.setOption({
@@ -490,6 +695,10 @@ countChart.setOption({
 });
 
 window.addEventListener('resize', () => {
+    housingCountChart.resize();
+    avgPriceChart.resize();
+    listingTrendChart.resize();
+    highEndChart.resize();
     priceChart.resize();
     countChart.resize();
 });
