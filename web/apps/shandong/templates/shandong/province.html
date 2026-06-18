@@ -61,18 +61,28 @@
         text-decoration: none;
     }
 
-    .map-section {
+    .province-layout {
         display: grid;
-        grid-template-columns: 252px minmax(0, 1fr);
-        gap: 20px;
+        grid-template-columns: 252px minmax(0, 1fr) 360px;
+        gap: 18px;
         min-height: calc(100vh - 178px);
-        padding: 0 20px 20px 0;
+        padding: 0 18px 24px 0;
+        align-items: start;
+    }
+
+    .left-rail,
+    .right-rail {
+        min-width: 0;
+        display: grid;
+        gap: 14px;
+        align-content: start;
     }
 
     .aside {
         background-color: #fff;
         box-shadow: 0 2px 8px 0 #11234512;
         overflow-y: auto;
+        max-height: 360px;
     }
 
     .aside_title {
@@ -109,7 +119,7 @@
 
     .map {
         min-width: 0;
-        min-height: 680px;
+        min-height: 760px;
         background: #fff;
         border-radius: 4px;
         box-shadow: 0 2px 12px rgba(17, 35, 69, 0.05);
@@ -119,26 +129,28 @@
     #city_map {
         width: 100%;
         height: 100%;
-        min-height: 680px;
+        min-height: 760px;
     }
 
     .analysis-section {
-        max-width: 1440px;
-        margin: 0 auto;
-        padding: 0 20px 32px;
+        min-width: 0;
     }
 
     .section-heading {
-        margin: 16px 0 14px;
+        margin: 0;
+        padding: 16px 18px;
         color: #111827;
-        font-size: 22px;
+        font-size: 18px;
         font-weight: 800;
+        background: #fff;
+        border: 1px solid #e5ebf2;
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(17, 44, 73, .06);
     }
 
     .analysis-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
+        gap: 14px;
     }
 
     .panel {
@@ -150,7 +162,7 @@
     }
 
     .panel.is-wide {
-        grid-column: span 2;
+        grid-column: auto;
     }
 
     .panel-title {
@@ -162,20 +174,20 @@
     }
 
     .stats-table-wrap {
-        padding: 16px;
-        max-height: 420px;
+        padding: 12px;
+        max-height: 330px;
         overflow: auto;
     }
 
     .stats-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .stats-table th,
     .stats-table td {
-        padding: 10px 12px;
+        padding: 8px 10px;
         border-bottom: 1px solid #edf1f6;
         text-align: right;
         white-space: nowrap;
@@ -195,20 +207,36 @@
     }
 
     .analysis-chart {
-        height: 380px;
+        height: 300px;
     }
 
     .analysis-chart.is-tall {
-        height: 460px;
+        height: 360px;
+    }
+
+    @media (max-width: 1280px) {
+        .province-layout {
+            grid-template-columns: 252px minmax(0, 1fr);
+            padding-right: 18px;
+        }
+
+        .right-rail {
+            grid-column: 1 / -1;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .section-heading {
+            grid-column: 1 / -1;
+        }
     }
 
     @media (max-width: 992px) {
-        .map-section,
-        .analysis-grid {
+        .province-layout,
+        .right-rail {
             grid-template-columns: 1fr;
         }
 
-        .map-section {
+        .province-layout {
             padding: 0 12px 16px;
         }
 
@@ -219,10 +247,6 @@
         .map,
         #city_map {
             min-height: 520px;
-        }
-
-        .panel.is-wide {
-            grid-column: span 1;
         }
     }
 </style>
@@ -240,46 +264,39 @@
         <span>山东省房源</span>
     </nav>
 
-    <div class="map-section">
-        <aside class="aside">
-            <div class="aside_title">山东省</div>
-            <div class="aside_content" id="cityList">
-                {% for city in cities %}
-                <a href="{% url 'shandong:city' city.name %}">
-                    {{ city.name }}
-                    <span class="city-stat">{{ city.house_count }}套</span>
-                </a>
-                {% endfor %}
-            </div>
-        </aside>
+    <div class="province-layout">
+        <div class="left-rail">
+            <aside class="aside">
+                <div class="aside_title">山东省</div>
+                <div class="aside_content" id="cityList">
+                    {% for city in cities %}
+                    <a href="{% url 'shandong:city' city.name %}">
+                        {{ city.name }}
+                        <span class="city-stat">{{ city.house_count }}套</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </aside>
 
-        <div class="map">
-            <div id="city_map"></div>
-        </div>
-    </div>
-
-    <section class="analysis-section">
-        <h2 class="section-heading">山东省房源扩展分析</h2>
-        <div class="analysis-grid">
-            <article class="panel is-wide">
+            <article class="panel">
                 <div class="panel-title">各城市房价描述性统计</div>
                 <div class="stats-table-wrap">
                     <table class="stats-table">
                         <thead>
                             <tr>
                                 <th>城市</th>
-                                <th>房源数量</th>
-                                <th>小区数量</th>
-                                <th>平均单价</th>
+                                <th>房源</th>
+                                <th>小区</th>
+                                <th>均价</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for city in city_stats %}
                             <tr>
                                 <td>{{ city.name }}</td>
-                                <td>{{ city.house_count }} 套</td>
-                                <td>{{ city.community_count }} 个</td>
-                                <td>{{ city.avg_unit_price|floatformat:0 }} 元/㎡</td>
+                                <td>{{ city.house_count }}</td>
+                                <td>{{ city.community_count }}</td>
+                                <td>{{ city.avg_unit_price|floatformat:0 }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -287,22 +304,29 @@
                 </div>
             </article>
 
-            <article class="panel is-wide">
-                <div class="panel-title">高端小区分布</div>
-                <div id="highEndChart" class="analysis-chart is-tall"></div>
-            </article>
-
             <article class="panel">
                 <div class="panel-title">城市房价排行</div>
                 <div id="cityPriceRankChart" class="analysis-chart"></div>
+            </article>
+        </div>
+
+        <div class="map">
+            <div id="city_map"></div>
+        </div>
+
+        <section class="analysis-section right-rail">
+            <h2 class="section-heading">山东省房源扩展分析</h2>
+            <article class="panel">
+                <div class="panel-title">高端小区分布</div>
+                <div id="highEndChart" class="analysis-chart is-tall"></div>
             </article>
 
             <article class="panel">
                 <div class="panel-title">房源数量分布</div>
                 <div id="houseCountDistributionChart" class="analysis-chart"></div>
             </article>
-        </div>
-    </section>
+        </section>
+    </div>
 </div>
 
 {{ city_stats|json_script:"province-city-stats" }}
@@ -409,13 +433,13 @@ highEndChart.setOption({
             ].join('<br>');
         }
     },
-    grid: { left: 160, right: 44, top: 28, bottom: 28 },
+    grid: { left: 108, right: 30, top: 26, bottom: 24 },
     xAxis: { type: 'value', name: '套' },
     yAxis: {
         type: 'category',
         inverse: true,
         data: highEndCommunities.map((item) => item.name),
-        axisLabel: { width: 130, overflow: 'truncate' }
+        axisLabel: { width: 90, overflow: 'truncate' }
     },
     series: [{
         type: 'bar',
@@ -428,8 +452,8 @@ highEndChart.setOption({
 const cityPriceRankChart = echarts.init(document.getElementById('cityPriceRankChart'));
 cityPriceRankChart.setOption({
     tooltip: { trigger: 'axis', valueFormatter: (value) => formatNumber(value) + ' 元/㎡' },
-    grid: { left: 58, right: 24, top: 36, bottom: 68 },
-    xAxis: { type: 'category', data: cityNames, axisLabel: { rotate: 30 } },
+    grid: { left: 52, right: 16, top: 34, bottom: 66 },
+    xAxis: { type: 'category', data: cityNames, axisLabel: { rotate: 45, fontSize: 11 } },
     yAxis: { type: 'value', name: '元/㎡' },
     series: [{
         type: 'bar',
