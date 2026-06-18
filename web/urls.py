@@ -8,4 +8,5 @@ urlpatterns = [
     path('house/', include('web.apps.house.urls')),
     path('analysis/', include('web.apps.analysis.urls')),
     path('prediction/', include('web.apps.prediction.urls')),
+    path('shandong/', include('web.apps.shandong.urls')),
 ]

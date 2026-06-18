@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'web.apps.house',
     'web.apps.analysis',
     'web.apps.prediction',
+    'web.apps.shandong',
 ]
 
 MIDDLEWARE = [
