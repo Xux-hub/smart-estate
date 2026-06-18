@@ -2,32 +2,22 @@ import re
 
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render, get_object_or_404
 
 from web.apps.house.models import City, District, House
 from . import charts
 
+# ═══ 页面视图 ═══
+
 
 def province(request):
-    """山东省首页地图。"""
+    """山东省首页地图"""
     cities = City.objects.all().order_by('name')
-    city_stats = [
-        {
-            'name': city.name,
-            'house_count': city.house_count or 0,
-            'avg_price': float(city.avg_unit_price or 0),
-            'community_count': city.community_count or 0,
-        }
-        for city in cities
-    ]
-    return render(request, 'shandong/province.html', {
-        'cities': cities,
-        'city_stats_json': city_stats,
-    })
+    return render(request, 'shandong/province.html', {'cities': cities})
 
 
 def city_detail(request, city_name):
-    """城市区县地图。"""
+    """城市区县地图"""
     city = get_object_or_404(City, name=city_name)
     districts = District.objects.filter(city_id=city.id).order_by('name')
     return render(request, 'shandong/city.html', {
@@ -37,7 +27,8 @@ def city_detail(request, city_name):
 
 
 def district_detail(request, city_name, district_name):
-    """区县房源筛选表格。"""
+    """区县房源筛选表格"""
+    # 获取该区县的筛选选项
     base = House.objects.filter(city=city_name, region=district_name)
 
     zhuangxiu_opts = base.values_list('zhuangxiu', flat=True) \
@@ -59,8 +50,10 @@ def district_detail(request, city_name, district_name):
     })
 
 
+# ═══ JSON API ═══
+
 def api_city_stats(request):
-    """各城市统计数据，名称带“市”后缀以匹配地图。"""
+    """各城市统计数据（返回名称加"市"后缀以匹配地图）"""
     cities = City.objects.all().values(
         'name', 'house_count', 'avg_unit_price', 'community_count')
     data = [{
@@ -73,7 +66,7 @@ def api_city_stats(request):
 
 
 def api_district_stats(request):
-    """某城市各区县统计数据。"""
+    """某城市各区县统计数据"""
     city_name = request.GET.get('city', '')
     try:
         city = City.objects.get(name=city_name)
@@ -91,7 +84,7 @@ def api_district_stats(request):
 
 
 def api_house_filter(request):
-    """筛选房源列表。"""
+    """筛选房源列表"""
     city = request.GET.get('city', '')
     region = request.GET.get('region', '')
     zhuangxiu = request.GET.get('zhuangxiu', '').strip()
@@ -114,6 +107,7 @@ def api_house_filter(request):
     if diya:
         qs = qs.filter(diya__contains=diya)
 
+    # 面积分类
     area_map = {
         '<60': (None, 60),
         '60-90': (60, 90),
@@ -123,17 +117,16 @@ def api_house_filter(request):
         '>200': (200, None),
     }
     if area and area in area_map:
+        lo, hi = area_map[area]
+        # 用 mianji_group 字段快速过滤
         label_map = {
-            '<60': '<60㎡',
-            '60-90': '60-90㎡',
-            '90-120': '90-120㎡',
-            '120-150': '120-150㎡',
-            '150-200': '150-200㎡',
-            '>200': '>200㎡',
+            '<60': '<60㎡', '60-90': '60-90㎡', '90-120': '90-120㎡',
+            '120-150': '120-150㎡', '150-200': '150-200㎡', '>200': '>200㎡',
         }
         if area in label_map:
             qs = qs.filter(mianji_group=label_map[area])
 
+    # 房价分类（基于 unit_price 单价）
     price_map = {
         '<5000': (None, 5000),
         '5000-8000': (5000, 8000),
@@ -150,7 +143,10 @@ def api_house_filter(request):
         elif hi is not None:
             qs = qs.filter(unit_price__lt=hi)
 
+    # 排序
     qs = qs.order_by('-shijian')
+
+    # 分页
     paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(page)
 
@@ -177,54 +173,67 @@ def api_house_filter(request):
     })
 
 
+# ═══ 图表视图 ═══
+
 def _png_response(buf):
     return HttpResponse(buf.getvalue(), content_type='image/png')
 
 
 def chart_desc_stats(request):
-    return _png_response(charts.chart_desc_stats())
+    buf = charts.chart_desc_stats()
+    return _png_response(buf)
 
 
 def chart_housing_count(request):
-    return _png_response(charts.chart_housing_count())
+    buf = charts.chart_housing_count()
+    return _png_response(buf)
 
 
 def chart_avg_price(request):
-    return _png_response(charts.chart_avg_price())
+    buf = charts.chart_avg_price()
+    return _png_response(buf)
 
 
 def chart_listing_trend(request):
-    return _png_response(charts.chart_listing_trend())
+    buf = charts.chart_listing_trend()
+    return _png_response(buf)
 
 
 def chart_high_end(request):
-    return _png_response(charts.chart_high_end())
+    buf = charts.chart_high_end()
+    return _png_response(buf)
 
 
 def chart_wordcloud(request):
-    return _png_response(charts.chart_wordcloud())
+    buf = charts.chart_wordcloud()
+    return _png_response(buf)
 
 
 def chart_top5_layouts(request):
     city = request.GET.get('city', '')
-    return _png_response(charts.chart_top5_layouts(city))
+    buf = charts.chart_top5_layouts(city)
+    return _png_response(buf)
 
 
 def chart_floor_pie(request):
     city = request.GET.get('city', '')
-    return _png_response(charts.chart_floor_pie(city))
+    buf = charts.chart_floor_pie(city)
+    return _png_response(buf)
 
 
 def chart_floor_avg_price(request):
     city = request.GET.get('city', '')
-    return _png_response(charts.chart_floor_avg_price(city))
+    buf = charts.chart_floor_avg_price(city)
+    return _png_response(buf)
 
 
 def chart_decoration(request):
     city = request.GET.get('city', '')
-    return _png_response(charts.chart_decoration(city))
+    buf = charts.chart_decoration(city)
+    return _png_response(buf)
 
 
 def chart_area_distribution(request):
     city = request.GET.get('city', '')
-    return _png_response(charts.chart_area_distribution(city))
+    buf = charts.chart_area_distribution(city)
+    return _png_response(buf)
