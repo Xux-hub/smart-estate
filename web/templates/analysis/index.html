@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}数据分析 - 智慧房源探索平台{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-bar-chart-line text-primary"></i> 数据分析</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <label class="form-label">选择城市</label>
+                <select id="citySelect" class="form-select">
+                    {% for city in cities %}
+                    <option value="{{ city.name }}">{{ city.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header">各区域均价分布</div><div class="card-body"><div id="priceDistChart" style="height:350px"></div></div></div></div>
+    <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header">热门户型分布</div><div class="card-body"><div id="layoutChart" style="height:350px"></div></div></div></div>
+    <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header">面积与单价关系</div><div class="card-body"><div id="scatterChart" style="height:350px"></div></div></div></div>
+    <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header">装修情况分析</div><div class="card-body"><div id="decorationChart" style="height:350px"></div></div></div></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const priceDistChart = echarts.init(document.getElementById('priceDistChart'));
+const layoutChart = echarts.init(document.getElementById('layoutChart'));
+const scatterChart = echarts.init(document.getElementById('scatterChart'));
+const decorationChart = echarts.init(document.getElementById('decorationChart'));
+
+function loadData(city) {
+    fetch('/analysis/api/price-distribution/?city=' + encodeURIComponent(city)).then((r) => r.json()).then((res) => {
+        const data = res.data;
+        priceDistChart.setOption({
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: data.map((d) => d.name), axisLabel: { rotate: 45 } },
+            yAxis: { type: 'value', name: '元/㎡' },
+            series: [{ type: 'bar', data: data.map((d) => Math.round(d.avg_price || 0)), itemStyle: { color: '#2563eb' } }],
+            grid: { left: '12%', right: '5%', bottom: '20%' }
+        });
+    });
+    fetch('/analysis/api/layout-stats/?city=' + encodeURIComponent(city)).then((r) => r.json()).then((res) => {
+        const data = res.data;
+        layoutChart.setOption({ tooltip: { trigger: 'item' }, series: [{ type: 'pie', radius: ['30%', '65%'], data: data.map((d) => ({ name: d.layout || '未知', value: d.count })) }] });
+    });
+    fetch('/analysis/api/price-area/?city=' + encodeURIComponent(city)).then((r) => r.json()).then((res) => {
+        const data = res.data;
+        scatterChart.setOption({
+            tooltip: { formatter: (p) => '面积: ' + p.data[0] + '㎡<br>单价: ' + p.data[1] + '元/㎡' },
+            xAxis: { type: 'value', name: '面积(㎡)' },
+            yAxis: { type: 'value', name: '单价(元/㎡)' },
+            series: [{ type: 'scatter', data: data.map((d) => [d.area, d.unit_price]), symbolSize: 6, itemStyle: { color: '#dc2626', opacity: 0.65 } }],
+            grid: { left: '12%', right: '5%', bottom: '12%' }
+        });
+    });
+    fetch('/analysis/api/decoration-stats/?city=' + encodeURIComponent(city)).then((r) => r.json()).then((res) => {
+        const data = res.data;
+        decorationChart.setOption({
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: data.map((d) => d.decoration) },
+            yAxis: [{ type: 'value', name: '数量' }, { type: 'value', name: '均价', position: 'right' }],
+            series: [
+                { type: 'bar', name: '数量', data: data.map((d) => d.count), itemStyle: { color: '#16a34a' } },
+                { type: 'line', name: '均价', yAxisIndex: 1, data: data.map((d) => Math.round(d.avg_price || 0)), itemStyle: { color: '#f97316' } }
+            ],
+            legend: { bottom: 0 },
+            grid: { left: '10%', right: '12%', bottom: '15%' }
+        });
+    });
+}
+
+const citySelect = document.getElementById('citySelect');
+if (citySelect.value) loadData(citySelect.value);
+citySelect.addEventListener('change', function() { loadData(this.value); });
+window.addEventListener('resize', () => { priceDistChart.resize(); layoutChart.resize(); scatterChart.resize(); decorationChart.resize(); });
+</script>
+{% endblock %}

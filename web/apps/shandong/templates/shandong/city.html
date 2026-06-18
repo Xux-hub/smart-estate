@@ -1,0 +1,280 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>{{ city.name }}房源信息 - 智慧房源探索平台</title>
+    <link rel="stylesheet" href="{% static 'css/myStyle.css' %}">
+    <style>
+        .bread {
+            height: 50px;
+            padding-left: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            background: #fff;
+            margin-bottom: 0;
+        }
+        .bread span { margin: 0 4px; }
+        .map-section { display: flex; height: calc(100vh - 120px); }
+        .aside {
+            width: 252px;
+            background-color: white;
+            box-shadow: 0px 2px 8px 0px #11234522;
+            border-radius: 1px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .aside_title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 20px 16px 12px 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #F0F0F0;
+        }
+        .aside_content a {
+            cursor: pointer;
+            height: 38px;
+            margin: 0px 8px;
+            padding-left: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #333333;
+            font-size: 14px;
+        }
+        .aside_content a:hover { color: #1672FD; background: #F5F7FA; }
+        .aside_content a .district-stat {
+            margin-left: auto;
+            margin-right: 10px;
+            font-size: 12px;
+            color: #999;
+        }
+        .map {
+            flex: 1;
+            background-color: white;
+            border-radius: 4px;
+            margin: 0px 20px;
+            position: relative;
+        }
+        #district_map { width: 100%; height: 100%; min-height: 500px; }
+        .header_title { font-size: 18px; font-weight: 700; }
+
+        /* 图表区域 */
+        .charts-section {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .charts-section h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 4px solid #1672FD;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .chart-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(17,35,69,0.1);
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .chart-card:hover { box-shadow: 0 4px 16px rgba(17,35,69,0.15); }
+        .chart-card .card-title {
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .chart-card .card-body { padding: 10px; text-align: center; }
+        .chart-card .card-body img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        .chart-card.full-width { grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header_left">
+            <img class="img1" alt="logo" src="{% static 'img/Frame.png' %}">
+        </div>
+        <div class="line"></div>
+        <div class="header_right">
+            <span class="header_title">{{ city.name }}房源信息</span>
+            <span class="bottomLine"></span>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="bread">
+            <span style="color: #1672FD; cursor: pointer;" id="screen">大屏</span>
+            <span style="color: #999999"> > </span>
+            <span style="color: #1672FD; cursor: pointer;" id="province">山东省房源</span>
+            <span style="color: #999999"> > </span>
+            <span>{{ city.name }}</span>
+        </div>
+    </section>
+
+    <div class="map-section">
+        <aside class="aside">
+            <div class="aside_title">{{ city.name }}</div>
+            <div class="aside_content" id="districtList">
+                {% for d in districts %}
+                <a href="{% url 'shandong:district' city.name d.name %}">
+                    {{ d.name }}
+                    <span class="district-stat">{{ d.house_count }}套</span>
+                </a>
+                {% endfor %}
+            </div>
+        </aside>
+        <div class="map">
+            <div id="district_map"></div>
+        </div>
+    </div>
+
+    <!-- 城市维度图表 -->
+    <div class="charts-section">
+        <h3>{{ city.name }}房源数据分析</h3>
+        <div class="chart-grid">
+
+            <div class="chart-card">
+                <div class="card-title">⑤ 热门户型 Top5</div>
+                <div class="card-body">
+                    <img src="{% url 'shandong:chart_top5_layouts' %}?city={{ city.name }}" alt="户型Top5" loading="lazy">
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="card-title">⑥ 楼层占比</div>
+                <div class="card-body">
+                    <img src="{% url 'shandong:chart_floor_pie' %}?city={{ city.name }}" alt="楼层占比" loading="lazy">
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="card-title">⑦ 楼层均价</div>
+                <div class="card-body">
+                    <img src="{% url 'shandong:chart_floor_avg_price' %}?city={{ city.name }}" alt="楼层均价" loading="lazy">
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="card-title">⑧ 装修结构</div>
+                <div class="card-body">
+                    <img src="{% url 'shandong:chart_decoration' %}?city={{ city.name }}" alt="装修结构" loading="lazy">
+                </div>
+            </div>
+
+            <div class="chart-card full-width">
+                <div class="card-title">⑨ 面积区间分布</div>
+                <div class="card-body">
+                    <img src="{% url 'shandong:chart_area_distribution' %}?city={{ city.name }}" alt="面积分布" loading="lazy">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="{% static 'js/echarts.min.js' %}"></script>
+    <script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+    <script>
+    var cityToFile = {
+        '济南': 'jinan', '青岛': 'qingdao', '淄博': 'zibo',
+        '烟台': 'yantai', '潍坊': 'weifang', '济宁': 'jining',
+        '泰安': 'taian', '威海': 'weihai', '临沂': 'linyi',
+        '菏泽': 'heze'
+    };
+
+    var cityName = '{{ city.name }}';
+    var fileName = cityToFile[cityName] || '';
+    var myChart = echarts.init(document.getElementById('district_map'));
+
+    Promise.all([
+        fetch('/shandong/api/district-stats/?city=' + encodeURIComponent(cityName)).then(r => r.json()),
+        new Promise(function(resolve) {
+            if (!fileName) return resolve(null);
+            $.getJSON("{% static 'data/shandong/' %}" + fileName + ".json", function(geoJson) {
+                resolve(geoJson);
+            }).fail(function() { resolve(null); });
+        })
+    ]).then(function(results) {
+        var stats = results[0].data;
+        var geoJson = results[1];
+        var mapData = [];
+        var maxVal = 0;
+
+        stats.forEach(function(item) {
+            mapData.push({
+                name: item.name,
+                value: item.house_count,
+                avg_price: item.avg_price,
+                community_count: item.community_count
+            });
+            if (item.house_count > maxVal) maxVal = item.house_count;
+        });
+
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    if (!params.value) return params.name + '<br/>暂无数据';
+                    return '<div style="font-size:14px;font-weight:bold;margin-bottom:6px;">' + params.name + '</div>' +
+                        '房源数量：<span style="color:#e64a19;font-weight:bold;">' + params.value + '</span> 套<br/>' +
+                        '平均单价：<span style="color:#e64a19;font-weight:bold;">' + (params.data.avg_price || 0).toLocaleString() + '</span> 元/㎡<br/>' +
+                        '小区数量：<span style="color:#e64a19;font-weight:bold;">' + (params.data.community_count || 0) + '</span> 个';
+                }
+            },
+            visualMap: {
+                min: 0, max: maxVal || 1,
+                text: ['高', '低'], left: '5%', bottom: '5%',
+                textStyle: { color: '#333', fontSize: 12 },
+                inRange: { color: ['#e3f2fd', '#90caf9', '#42a5f5', '#1565c0'] },
+                calculable: true
+            },
+            geo: {
+                map: fileName || 'shandong', roam: true, zoom: 1.2,
+                label: { normal: { show: true, fontSize: 11, color: '#333' }, emphasis: { textStyle: { color: '#fff' } } },
+                itemStyle: {
+                    normal: {
+                        borderColor: 'rgba(147,235,248,1)', borderWidth: 1, areaColor: '#e3f2fd',
+                        shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.1)'
+                    },
+                    emphasis: { areaColor: '#42a5f5', borderWidth: 0 }
+                }
+            },
+            series: [{ name: '房源', type: 'map', map: fileName || 'shandong', geoIndex: 0, data: mapData }]
+        };
+
+        if (geoJson && fileName) echarts.registerMap(fileName, geoJson);
+        myChart.setOption(option);
+
+        myChart.on('click', function(params) {
+            if (params.name) {
+                window.location.href = '/shandong/' + encodeURIComponent(cityName) + '/' +
+                    encodeURIComponent(params.name) + '/';
+            }
+        });
+    });
+
+    document.getElementById('screen').addEventListener('click', function() {
+        window.location.href = '/';
+    });
+    document.getElementById('province').addEventListener('click', function() {
+        window.location.href = '/shandong/';
+    });
+
+    window.addEventListener('resize', function() { myChart.resize(); });
+    </script>
+</body>
+</html>

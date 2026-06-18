@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>{{ district_name }}房源信息 - 智慧房源探索平台</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-table.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/myStyle.css' %}">
+    <style>
+        .bread {
+            height: 50px;
+            padding-left: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            background: #fff;
+            margin-bottom: 0;
+        }
+        .bread span { margin: 0 4px; }
+        .main { display: flex; height: calc(100vh - 120px); }
+        .aside {
+            width: 252px;
+            background-color: white;
+            box-shadow: 0px 2px 8px 0px #11234522;
+            border-radius: 1px;
+            overflow-y: auto;
+            padding: 27px 16px 0 16px;
+            flex-shrink: 0;
+        }
+        .aside_title {
+            font-size: 16px;
+            font-weight: 700;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #F0F0F0;
+            margin-bottom: 16px;
+        }
+        .aside_item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+        .aside_item label {
+            width: 60px;
+            color: #999999;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .aside_item select {
+            flex: 1;
+            height: 36px;
+            border-radius: 4px;
+            border: 1px solid #EEEEEE;
+            padding-left: 10px;
+            padding-right: 24px;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background: url("{% static 'img/arrow.png' %}") no-repeat right 8px center #F7F8FA;
+            background-size: 12px 12px;
+            font-size: 12px;
+            color: #333;
+        }
+        .btn-submit {
+            display: block;
+            width: 100px;
+            height: 32px;
+            line-height: 32px;
+            color: white;
+            background-color: #1672FD;
+            border-radius: 28px;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            cursor: pointer;
+            margin: 20px auto 0;
+            text-align: center;
+        }
+        .btn-submit:hover { background-color: #1258cc; }
+        .table-wrap {
+            flex: 1;
+            background-color: white;
+            border-radius: 4px;
+            margin: 0 20px;
+            padding: 15px;
+            overflow: auto;
+        }
+        .table-wrap table { font-size: 12px; }
+        .table-wrap th {
+            background-color: #f8f9fa;
+            white-space: nowrap;
+        }
+        .table-wrap td { vertical-align: middle; }
+        .table-wrap a { color: #1672FD; text-decoration: none; font-size: 12px; }
+        .table-wrap a:hover { text-decoration: underline; }
+        .pagination-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .pagination-info .page-btns { display: flex; gap: 4px; }
+        .pagination-info .page-btns button {
+            min-width: 30px;
+            height: 30px;
+            border: 1px solid #dee2e6;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .pagination-info .page-btns button:hover { background: #e9ecef; }
+        .pagination-info .page-btns button.active {
+            background: #1672FD;
+            color: #fff;
+            border-color: #1672FD;
+        }
+        .pagination-info .page-btns button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .header_title { font-size: 18px; font-weight: 700; }
+        .loading-overlay {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header_left">
+            <img class="img1" alt="logo" src="{% static 'img/Frame.png' %}">
+        </div>
+        <div class="line"></div>
+        <div class="header_right">
+            <span class="header_title">{{ district_name }}房源信息</span>
+            <span class="bottomLine"></span>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="bread">
+            <span style="color: #1672FD; cursor: pointer;" id="screen">大屏</span>
+            <span style="color: #999999"> > </span>
+            <span style="color: #1672FD; cursor: pointer;" id="province">山东省房源</span>
+            <span style="color: #999999"> > </span>
+            <span style="color: #1672FD; cursor: pointer;" id="city">{{ city_name }}</span>
+            <span style="color: #999999"> > </span>
+            <span>{{ district_name }}</span>
+        </div>
+    </section>
+
+    <main class="main">
+        <aside class="aside">
+            <div class="aside_title">筛选条件</div>
+
+            <div class="aside_item">
+                <label>装修情况</label>
+                <select id="filter_zhuangxiu">
+                    <option value="">全部</option>
+                    {% for opt in zhuangxiu_options %}
+                    <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="aside_item">
+                <label>楼层分类</label>
+                <select id="filter_louceng">
+                    <option value="">全部</option>
+                    {% for opt in louceng_options %}
+                    <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="aside_item">
+                <label>产权所属</label>
+                <select id="filter_quanshu">
+                    <option value="">全部</option>
+                    {% for opt in quanshu_options %}
+                    <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="aside_item">
+                <label>抵押分类</label>
+                <select id="filter_diya">
+                    <option value="">全部</option>
+                    {% for opt in diya_options %}
+                    <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="aside_item">
+                <label>面积分类</label>
+                <select id="filter_area">
+                    <option value="">全部</option>
+                    <option value="<60">&lt;60㎡</option>
+                    <option value="60-90">60-90㎡</option>
+                    <option value="90-120">90-120㎡</option>
+                    <option value="120-150">120-150㎡</option>
+                    <option value="150-200">150-200㎡</option>
+                    <option value=">200">&gt;200㎡</option>
+                </select>
+            </div>
+
+            <div class="aside_item">
+                <label>房价分类</label>
+                <select id="filter_price">
+                    <option value="">全部</option>
+                    <option value="<5000">&lt;5000元/㎡</option>
+                    <option value="5000-8000">5000-8000元/㎡</option>
+                    <option value="8000-12000">8000-12000元/㎡</option>
+                    <option value="12000-20000">12000-20000元/㎡</option>
+                    <option value=">20000">&gt;20000元/㎡</option>
+                </select>
+            </div>
+
+            <button class="btn-submit" id="btnFilter">确定</button>
+        </aside>
+
+        <div class="table-wrap">
+            <div id="loadingIndicator" class="loading-overlay">加载中...</div>
+            <table class="table table-bordered table-hover" id="houseTable">
+                <thead>
+                    <tr>
+                        <th>小区名称</th>
+                        <th>户型</th>
+                        <th>面积</th>
+                        <th>楼层</th>
+                        <th>装修</th>
+                        <th>朝向</th>
+                        <th>总价(万)</th>
+                        <th>单价(元/㎡)</th>
+                        <th>挂牌时间</th>
+                        <th>产权</th>
+                        <th>抵押</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="11" style="text-align:center;color:#999;padding:40px;">请点击"确定"按钮加载数据</td></tr>
+                </tbody>
+            </table>
+            <div class="pagination-info" id="paginationInfo">
+                <span id="totalInfo">共 0 条</span>
+                <div class="page-btns" id="pageBtns"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+    <script>
+    var currentPage = 1;
+    var totalPages = 1;
+
+    function loadData(page) {
+        var params = {
+            city: '{{ city_name }}',
+            region: '{{ district_name }}',
+            page: page || 1,
+            page_size: 15,
+            zhuangxiu: $('#filter_zhuangxiu').val(),
+            louceng: $('#filter_louceng').val(),
+            quanshu: $('#filter_quanshu').val(),
+            diya: $('#filter_diya').val(),
+            area: $('#filter_area').val(),
+            price: $('#filter_price').val(),
+        };
+
+        $('#loadingIndicator').show();
+        $('#tableBody').html('<tr><td colspan="11" style="text-align:center;padding:40px;color:#999;">加载中...</td></tr>');
+
+        $.getJSON('/shandong/api/house-filter/', params, function(res) {
+            $('#loadingIndicator').hide();
+            currentPage = res.page;
+            totalPages = res.pages;
+
+            var tbody = $('#tableBody');
+            tbody.empty();
+
+            if (res.data.length === 0) {
+                tbody.html('<tr><td colspan="11" style="text-align:center;padding:40px;color:#999;">暂无符合条件的房源</td></tr>');
+            } else {
+                res.data.forEach(function(h) {
+                    tbody.append(
+                        '<tr>' +
+                            '<td>' + (h.mingcheng || '-') + '</td>' +
+                            '<td>' + (h.huxing || '-') + '</td>' +
+                            '<td>' + (h.mianji || '-') + '</td>' +
+                            '<td>' + (h.louceng || '-') + '</td>' +
+                            '<td>' + (h.zhuangxiu || '-') + '</td>' +
+                            '<td>' + (h.chaoxiang || '-') + '</td>' +
+                            '<td><strong>' + (h.price || '-') + '</strong></td>' +
+                            '<td>' + (h.unit_price ? h.unit_price.toLocaleString() : '-') + '</td>' +
+                            '<td>' + (h.shijian || '-') + '</td>' +
+                            '<td>' + (h.quanshu || '-') + '</td>' +
+                            '<td>' + (h.diya || '-') + '</td>' +
+                        '</tr>'
+                    );
+                });
+            }
+
+            // 更新分页
+            $('#totalInfo').text('共 ' + res.total + ' 条，第 ' + res.page + '/' + res.pages + ' 页');
+            renderPagination(res.page, res.pages);
+        }).fail(function() {
+            $('#loadingIndicator').hide();
+            $('#tableBody').html('<tr><td colspan="11" style="text-align:center;padding:40px;color:#f00;">加载失败，请重试</td></tr>');
+        });
+    }
+
+    function renderPagination(page, pages) {
+        var html = '';
+        html += '<button onclick="goPage(1)" ' + (page <= 1 ? 'disabled' : '') + '>首页</button>';
+        html += '<button onclick="goPage(' + (page - 1) + ')" ' + (page <= 1 ? 'disabled' : '') + '>‹</button>';
+        for (var i = Math.max(1, page - 2); i <= Math.min(pages, page + 2); i++) {
+            html += '<button class="' + (i === page ? 'active' : '') + '" onclick="goPage(' + i + ')">' + i + '</button>';
+        }
+        html += '<button onclick="goPage(' + (page + 1) + ')" ' + (page >= pages ? 'disabled' : '') + '>›</button>';
+        html += '<button onclick="goPage(' + pages + ')" ' + (page >= pages ? 'disabled' : '') + '>末页</button>';
+        $('#pageBtns').html(html);
+    }
+
+    function goPage(page) {
+        if (page < 1 || page > totalPages) return;
+        loadData(page);
+    }
+
+    // 绑定确定按钮
+    $('#btnFilter').on('click', function() {
+        loadData(1);
+    });
+
+    // 回车触发筛选
+    $('select').on('keydown', function(e) {
+        if (e.keyCode === 13) loadData(1);
+    });
+
+    // 面包屑导航
+    document.getElementById('screen').addEventListener('click', function() {
+        window.location.href = '/';
+    });
+    document.getElementById('province').addEventListener('click', function() {
+        window.location.href = '/shandong/';
+    });
+    document.getElementById('city').addEventListener('click', function() {
+        window.location.href = '/shandong/{{ city_name }}/';
+    });
+    </script>
+</body>
+</html>

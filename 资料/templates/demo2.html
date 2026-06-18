@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<link rel="stylesheet" href="../static/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="../static/css/bootstrap-table.min.css" />
+	<link rel="stylesheet" href="../static/css/myStyle.css" />
+	<script src="..static/js/jquery-3.4.1.min.js"></script>
+	<script src="..static/js/bootstrap.min.js"></script>
+	<script src="..static/js/bootstrap-table.min.js"></script>
+
+</head>
+<body>
+	<header class="header">
+		<div class="header_left">
+			<img class="img1" alt="" src="../static/img/Frame.png">
+		</div>
+		<div class="line"></div>
+		<div class="header_right">
+			<span class="header_title">山东省菏泽市牡丹区房源信息</span>
+			<span class="bottomLine"></span>
+		</div>
+	</header>
+	<section class="section">
+		<div class="bread">
+			<span style="color: #1672FD; cursor: pointer;" id="screen">大屏</span>
+			<span style="color: #999999">></span>
+			<span style="color: #1672FD; cursor: pointer;" id="province">山东省房源</span>
+			<span style="color: #999999">></span>
+			<span style="color: #1672FD; cursor: pointer;" id="city">临沂市</span>
+			<span style="color: #999999">></span>
+			<span>菏泽市房源</span>
+		</div>
+	</section>
+	<main class="main">
+		<aside class="aside selectAside">
+			<div class="aside_item">
+				<div class="selectAside_title">装修</div>
+				<select name="furnish" id="furnish">
+					<option value="0">请选择</option>
+					<option value="1">北京</option>
+					<option value="2">天津</option>
+					<option value="3">河北省</option>
+				</select>
+			</div>
+			<div class="aside_item">
+				<div class="selectAside_title">户型</div>
+				<select name="type" id="type">
+					<option value="0">请选择</option>
+					<option value="1">北京</option>
+					<option value="2">天津</option>
+					<option value="3">河北省</option>
+				</select>
+			</div>
+			<div class="aside_item">
+				<div class="selectAside_title">楼层</div>
+				<select name="floor" id="floor">
+					<option value="0">请选择</option>
+					<option value="1">北京</option>
+					<option value="2">天津</option>
+					<option value="3">河北省</option>
+				</select>
+			</div>
+			<div class="aside_item">
+				<div class="selectAside_title">产权</div>
+				<select name="property" id="property">
+					<option value="0">请选择</option>
+					<option value="1">北京</option>
+					<option value="2">天津</option>
+					<option value="3">河北省</option>
+				</select>
+			</div>
+			<div class="aside_item">
+				<div class="selectAside_title">抵押</div>
+				<select name="charge" id="charge">
+					<option value="0">请选择</option>
+					<option value="1">北京</option>
+					<option value="2">天津</option>
+					<option value="3">河北省</option>
+				</select>
+			</div>
+			<div class="aside_item">
+				<div class="selectAside_title">面积</div>
+				<select name=" area" id="area">
+					<option value="0">请选择</option>
+					<option value="1">北京</option>
+					<option value="2">天津</option>
+					<option value="3">河北省</option>
+				</select>
+			</div>
+			<div class="aside_item">
+				<div class="selectAside_title">价格</div>
+				<select name="price" id="price">
+					<option value="0">请选择</option>
+					<option value="1">北京</option>
+					<option value="2">天津</option>
+					<option value="3">河北省</option>
+				</select>
+			</div>
+			<div class="aside_item">
+				<button class="btn">确定</button>
+			</div>
+		</aside>
+		<div class="myTable" id="list">
+
+		</div>
+	</main>
+</body>
+<script type="text/javascript">
+	// 点击大屏跳转到大屏页面
+	var screen = document.getElementById('screen')
+	screen.addEventListener('click', () => {
+		location.href = 'xxxx'
+	})
+	// 点击山东省房源跳转
+	var province = document.getElementById('province')
+	province.addEventListener('click', () => {
+		location.href = './demo.html'
+	})
+	// 点击城市房源跳转
+	var city = document.getElementById('city')
+	city.addEventListener('click', () => {
+		location.href = './demo.html'
+	})
+</script>
+
+</html>

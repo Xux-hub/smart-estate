@@ -1,0 +1,63 @@
+{
+  "data_quality": {
+    "records_after_basic_clean": 19873,
+    "area_min": 11.66,
+    "area_max": 715.71,
+    "unit_price_min": 2343.0,
+    "unit_price_max": 179989.0,
+    "records_after_outlier_clean": 18268
+  },
+  "default_random_forest_before_price_cleaning": {
+    "mae": 4417.537892015936,
+    "rmse": 7313.315832414262,
+    "r2": 0.6945180920972842
+  },
+  "default_random_forest_after_price_cleaning": {
+    "mae": 3476.8067755301013,
+    "rmse": 4954.66049523307,
+    "r2": 0.7261695652277073
+  },
+  "model_comparison": [
+    {
+      "model": "LinearRegression",
+      "cv_mae": 3604.8983692402,
+      "cv_rmse": 4932.4692863134,
+      "cv_r2": 0.7312631079,
+      "cv_r2_std": 0.010568539
+    },
+    {
+      "model": "RandomForest",
+      "cv_mae": 3532.103981049,
+      "cv_rmse": 5011.9649236621,
+      "cv_r2": 0.722650423,
+      "cv_r2_std": 0.005944097
+    },
+    {
+      "model": "DecisionTree",
+      "cv_mae": 4403.9951056923,
+      "cv_rmse": 6359.7345386074,
+      "cv_r2": 0.5532361841,
+      "cv_r2_std": 0.0155356041
+    }
+  ],
+  "best_params": {
+    "model__max_depth": null,
+    "model__max_features": "sqrt",
+    "model__min_samples_leaf": 1,
+    "model__min_samples_split": 5,
+    "model__n_estimators": 200
+  },
+  "optimized_random_forest": {
+    "mae": 3554.825530275195,
+    "rmse": 4976.338147505103,
+    "r2": 0.7237681952202686
+  },
+  "final_model": {
+    "name": "DefaultRandomForestAfterCleaning",
+    "metrics": {
+      "mae": 3476.8067755301013,
+      "rmse": 4954.66049523307,
+      "r2": 0.7261695652277073
+    }
+  }
+}

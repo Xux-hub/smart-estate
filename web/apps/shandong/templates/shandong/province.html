@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}山东房源 - 智慧房源探索平台{% endblock %}
+{% block main_class %}container-fluid py-4{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #f4f7fb;
+    }
+
+    .shandong-shell {
+        max-width: 1500px;
+        margin: 0 auto;
+    }
+
+    .page-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .page-heading h2 {
+        margin: 0;
+        color: #111827;
+        font-size: 26px;
+        font-weight: 800;
+    }
+
+    .page-heading p {
+        margin: 6px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .map-panel {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        min-height: 680px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e5ebf2;
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(17, 44, 73, .06);
+    }
+
+    .city-sidebar {
+        border-right: 1px solid #e5ebf2;
+        background: #fbfdff;
+        padding: 20px 14px;
+        overflow-y: auto;
+    }
+
+    .city-sidebar h3 {
+        margin: 0 8px 12px;
+        padding-bottom: 12px;
+        color: #111827;
+        font-size: 17px;
+        font-weight: 800;
+        border-bottom: 1px solid #edf1f6;
+    }
+
+    .city-list {
+        display: grid;
+        gap: 4px;
+    }
+
+    .city-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 40px;
+        padding: 0 12px 0 18px;
+        color: #374151;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .city-link:hover {
+        color: #1672fd;
+        background: #edf5ff;
+    }
+
+    .city-stat {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .map-wrap {
+        min-width: 0;
+        min-height: 680px;
+        position: relative;
+    }
+
+    #city_map {
+        width: 100%;
+        height: 100%;
+        min-height: 680px;
+    }
+
+    @media (max-width: 992px) {
+        .page-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .map-panel {
+            grid-template-columns: 1fr;
+        }
+
+        .city-sidebar {
+            border-right: 0;
+            border-bottom: 1px solid #e5ebf2;
+            max-height: 260px;
+        }
+
+        .map-wrap,
+        #city_map {
+            min-height: 520px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="shandong-shell">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'home:index' %}">首页</a></li>
+            <li class="breadcrumb-item active" aria-current="page">山东房源</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h2><i class="bi bi-map text-primary"></i> 山东省各城市房源信息</h2>
+            <p>按房源数量展示 16 个地市分布，悬停可查看房源数量、平均单价和小区数量。</p>
+        </div>
+    </div>
+
+    <section class="map-panel">
+        <aside class="city-sidebar">
+            <h3>山东省城市</h3>
+            <div class="city-list" id="cityList">
+                {% for city in cities %}
+                <a class="city-link" href="{% url 'shandong:city' city.name %}">
+                    <span>{{ city.name }}</span>
+                    <span class="city-stat">{{ city.house_count }}套</span>
+                </a>
+                {% endfor %}
+            </div>
+        </aside>
+        <div class="map-wrap">
+            <div id="city_map"></div>
+        </div>
+    </section>
+</div>
+
+{{ city_stats_json|json_script:"city-stats-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const cityStats = JSON.parse(document.getElementById('city-stats-data').textContent);
+const cityByName = new Map(cityStats.map((item) => [item.name, item]));
+const mapElement = document.getElementById('city_map');
+const myChart = echarts.init(mapElement);
+
+function plainCityName(name) {
+    return String(name || '').replace(/市$/, '');
+}
+
+function formatNumber(value) {
+    return Number(value || 0).toLocaleString('zh-CN');
+}
+
+fetch("{% static 'data/shandong_geo.json' %}")
+    .then((response) => response.json())
+    .then((geoJson) => {
+        echarts.registerMap('shandong', geoJson);
+        const mapData = geoJson.features.map((feature) => {
+            const fullName = feature.properties.name;
+            const name = plainCityName(fullName);
+            const stat = cityByName.get(name) || {};
+            return {
+                name: fullName,
+                cityName: name,
+                value: Number(stat.house_count || 0),
+                house_count: Number(stat.house_count || 0),
+                avg_price: Number(stat.avg_price || 0),
+                community_count: Number(stat.community_count || 0),
+            };
+        });
+
+        myChart.setOption({
+            tooltip: {
+                trigger: 'item',
+                formatter(params) {
+                    return [
+                        '<div style="font-size:14px;font-weight:bold;margin-bottom:6px;">' + params.name + '</div>',
+                        '房源数量：<span style="color:#e64a19;font-weight:bold;">' + formatNumber(params.data.house_count) + '</span> 套<br>',
+                        '平均单价：<span style="color:#e64a19;font-weight:bold;">' + formatNumber(params.data.avg_price) + '</span> 元/㎡<br>',
+                        '小区数量：<span style="color:#e64a19;font-weight:bold;">' + formatNumber(params.data.community_count) + '</span> 个',
+                    ].join('');
+                },
+            },
+            visualMap: {
+                min: 0,
+                max: Math.max(...mapData.map((item) => item.value), 1),
+                left: 24,
+                bottom: 24,
+                text: ['高', '低'],
+                calculable: true,
+                inRange: {
+                    color: ['#dbeafe', '#60a5fa', '#1d4ed8'],
+                },
+            },
+            series: [{
+                name: '山东省房源',
+                type: 'map',
+                map: 'shandong',
+                roam: true,
+                zoom: 1.08,
+                data: mapData,
+                label: {
+                    show: true,
+                    color: '#1f2937',
+                    fontSize: 12,
+                },
+                itemStyle: {
+                    borderColor: '#fff',
+                    borderWidth: 1,
+                },
+                emphasis: {
+                    label: {
+                        color: '#111827',
+                        fontWeight: 'bold',
+                    },
+                    itemStyle: {
+                        areaColor: '#f59e0b',
+                    },
+                },
+            }],
+        });
+
+        myChart.on('click', (params) => {
+            const cityName = params.data && params.data.cityName;
+            if (cityName && params.data.house_count > 0) {
+                window.location.href = '/shandong/' + encodeURIComponent(cityName) + '/';
+            }
+        });
+    });
+
+window.addEventListener('resize', () => myChart.resize());
+</script>
+{% endblock %}

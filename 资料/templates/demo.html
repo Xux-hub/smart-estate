@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<link rel="stylesheet" href="./myStyle.css" />
+</head>
+
+<body>
+	<header class="header">
+		<div class="header_left">
+			<img class="img1" alt="" src="../static/img/Frame.png">
+		</div>
+		<div class="line"></div>
+		<div class="header_right">
+			<span class="header_title">山东省各城市房源信息</span>
+			<span class="bottomLine"></span>
+		</div>
+	</header>
+	<section class="section">
+		<div class="bread">
+			<span style="color: #1672FD; cursor: pointer;" id="screen">大屏</span>
+			<span style="color: #999999">></span>
+			<span>山东省房源</span>
+		</div>
+	</section>
+	<main class="main">
+		<aside class="aside">
+			<div class="aside_title">山东省</div>
+			<div class="aside_content">
+				<a href="">菏泽市</a>
+				<a href="">济南</a>
+				<a href="">济宁市</a>
+				<a href="">临沂市</a>
+				<a href="">青岛市</a>
+				<a href="">泰安市</a>
+				<a href="">潍坊市</a>
+				<a href="">威海市</a>
+				<a href="">烟台市</a>
+				<a href="">淄博市</a>
+			</div>
+		</aside>
+		<div class="map" id="city_map"></div>
+	</main>
+</body>
+
+</html>
+<script type='text/javascript'>
+	// 点击大屏跳转到大屏页面
+	var screen = document.getElementById('screen')
+	screen.addEventListener('click', () => {
+		location.href = 'xxxx'
+	})
+
+</script>
