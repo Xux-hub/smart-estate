@@ -110,7 +110,6 @@
     .map {
         min-width: 0;
         min-height: 680px;
-        margin-top: 0;
         background: #fff;
         border-radius: 4px;
         box-shadow: 0 2px 12px rgba(17, 35, 69, 0.05);
@@ -123,9 +122,93 @@
         min-height: 680px;
     }
 
+    .analysis-section {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 20px 32px;
+    }
+
+    .section-heading {
+        margin: 16px 0 14px;
+        color: #111827;
+        font-size: 22px;
+        font-weight: 800;
+    }
+
+    .analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .panel {
+        background: #fff;
+        border: 1px solid #e5ebf2;
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(17, 44, 73, .06);
+        overflow: hidden;
+    }
+
+    .panel.is-wide {
+        grid-column: span 2;
+    }
+
+    .panel-title {
+        padding: 14px 18px;
+        color: #111827;
+        font-size: 17px;
+        font-weight: 800;
+        border-bottom: 1px solid #edf1f6;
+    }
+
+    .stats-table-wrap {
+        padding: 16px;
+        max-height: 420px;
+        overflow: auto;
+    }
+
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .stats-table th,
+    .stats-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #edf1f6;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .stats-table th:first-child,
+    .stats-table td:first-child {
+        text-align: left;
+    }
+
+    .stats-table th {
+        color: #374151;
+        background: #f8fafc;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .analysis-chart {
+        height: 380px;
+    }
+
+    .analysis-chart.is-tall {
+        height: 460px;
+    }
+
     @media (max-width: 992px) {
-        .map-section {
+        .map-section,
+        .analysis-grid {
             grid-template-columns: 1fr;
+        }
+
+        .map-section {
             padding: 0 12px 16px;
         }
 
@@ -136,6 +219,10 @@
         .map,
         #city_map {
             min-height: 520px;
+        }
+
+        .panel.is-wide {
+            grid-column: span 1;
         }
     }
 </style>
@@ -170,12 +257,63 @@
             <div id="city_map"></div>
         </div>
     </div>
+
+    <section class="analysis-section">
+        <h2 class="section-heading">山东省房源扩展分析</h2>
+        <div class="analysis-grid">
+            <article class="panel is-wide">
+                <div class="panel-title">各城市房价描述性统计</div>
+                <div class="stats-table-wrap">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>城市</th>
+                                <th>房源数量</th>
+                                <th>小区数量</th>
+                                <th>平均单价</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for city in city_stats %}
+                            <tr>
+                                <td>{{ city.name }}</td>
+                                <td>{{ city.house_count }} 套</td>
+                                <td>{{ city.community_count }} 个</td>
+                                <td>{{ city.avg_unit_price|floatformat:0 }} 元/㎡</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="panel is-wide">
+                <div class="panel-title">高端小区分布</div>
+                <div id="highEndChart" class="analysis-chart is-tall"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-title">城市房价排行</div>
+                <div id="cityPriceRankChart" class="analysis-chart"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-title">房源数量分布</div>
+                <div id="houseCountDistributionChart" class="analysis-chart"></div>
+            </article>
+        </div>
+    </section>
 </div>
+
+{{ city_stats|json_script:"province-city-stats" }}
+{{ high_end_communities|json_script:"province-high-end" }}
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/shandong.js' %}"></script>
 <script>
+const cityStats = JSON.parse(document.getElementById('province-city-stats').textContent);
+const highEndCommunities = JSON.parse(document.getElementById('province-high-end').textContent);
 const myChart = echarts.init(document.getElementById('city_map'));
 
 function formatNumber(value) {
@@ -212,13 +350,8 @@ fetch('/shandong/api/city-stats/')
                 text: ['高', '低'],
                 left: '5%',
                 bottom: '5%',
-                textStyle: {
-                    color: '#333',
-                    fontSize: 12,
-                },
-                inRange: {
-                    color: ['#e8f5e9', '#a5d6a7', '#4caf50', '#2e7d32'],
-                },
+                textStyle: { color: '#333', fontSize: 12 },
+                inRange: { color: ['#e8f5e9', '#a5d6a7', '#4caf50', '#2e7d32'] },
                 calculable: true,
             },
             geo: {
@@ -226,16 +359,8 @@ fetch('/shandong/api/city-stats/')
                 roam: true,
                 zoom: 1.2,
                 label: {
-                    normal: {
-                        show: true,
-                        fontSize: 11,
-                        color: '#333',
-                    },
-                    emphasis: {
-                        textStyle: {
-                            color: '#fff',
-                        },
-                    },
+                    normal: { show: true, fontSize: 11, color: '#333' },
+                    emphasis: { textStyle: { color: '#fff' } },
                 },
                 itemStyle: {
                     normal: {
@@ -245,10 +370,7 @@ fetch('/shandong/api/city-stats/')
                         shadowBlur: 10,
                         shadowColor: 'rgba(0,0,0,0.1)',
                     },
-                    emphasis: {
-                        areaColor: '#4caf50',
-                        borderWidth: 0,
-                    },
+                    emphasis: { areaColor: '#4caf50', borderWidth: 0 },
                 },
             },
             series: [{
@@ -268,6 +390,71 @@ fetch('/shandong/api/city-stats/')
         });
     });
 
-window.addEventListener('resize', () => myChart.resize());
+const cityNames = cityStats.map((item) => item.name);
+const cityPrices = cityStats.map((item) => Math.round(item.avg_unit_price || 0));
+const cityCounts = cityStats.map((item) => ({ name: item.name, value: item.house_count || 0 }));
+
+const highEndChart = echarts.init(document.getElementById('highEndChart'));
+highEndChart.setOption({
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        formatter(params) {
+            const item = highEndCommunities[params[0].dataIndex] || {};
+            return [
+                '<strong>' + item.name + '</strong>',
+                '城市区域：' + [item.city, item.region].filter(Boolean).join(' / '),
+                '高端房源：' + formatNumber(item.count) + ' 套',
+                '平均单价：' + formatNumber(item.avg_price) + ' 元/㎡'
+            ].join('<br>');
+        }
+    },
+    grid: { left: 160, right: 44, top: 28, bottom: 28 },
+    xAxis: { type: 'value', name: '套' },
+    yAxis: {
+        type: 'category',
+        inverse: true,
+        data: highEndCommunities.map((item) => item.name),
+        axisLabel: { width: 130, overflow: 'truncate' }
+    },
+    series: [{
+        type: 'bar',
+        data: highEndCommunities.map((item) => item.count),
+        itemStyle: { color: '#f59e0b', borderRadius: [0, 4, 4, 0] },
+        label: { show: true, position: 'right' }
+    }]
+});
+
+const cityPriceRankChart = echarts.init(document.getElementById('cityPriceRankChart'));
+cityPriceRankChart.setOption({
+    tooltip: { trigger: 'axis', valueFormatter: (value) => formatNumber(value) + ' 元/㎡' },
+    grid: { left: 58, right: 24, top: 36, bottom: 68 },
+    xAxis: { type: 'category', data: cityNames, axisLabel: { rotate: 30 } },
+    yAxis: { type: 'value', name: '元/㎡' },
+    series: [{
+        type: 'bar',
+        data: cityPrices,
+        itemStyle: { color: '#0f766e', borderRadius: [4, 4, 0, 0] }
+    }]
+});
+
+const houseCountDistributionChart = echarts.init(document.getElementById('houseCountDistributionChart'));
+houseCountDistributionChart.setOption({
+    tooltip: { trigger: 'item' },
+    legend: { bottom: 0 },
+    series: [{
+        type: 'pie',
+        radius: ['36%', '68%'],
+        center: ['50%', '44%'],
+        data: cityCounts
+    }]
+});
+
+window.addEventListener('resize', () => {
+    myChart.resize();
+    highEndChart.resize();
+    cityPriceRankChart.resize();
+    houseCountDistributionChart.resize();
+});
 </script>
 {% endblock %}

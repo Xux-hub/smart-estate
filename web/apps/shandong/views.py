@@ -1,6 +1,7 @@
 import re
 
 from django.core.paginator import Paginator
+from django.db.models import Avg, Count
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 
@@ -10,7 +11,20 @@ from . import charts
 
 def province(request):
     cities = City.objects.all().order_by('name')
-    return render(request, 'shandong/province.html', {'cities': cities})
+    city_stats = [
+        {
+            'name': city.name,
+            'house_count': city.house_count or 0,
+            'community_count': city.community_count or 0,
+            'avg_unit_price': float(city.avg_unit_price or 0),
+        }
+        for city in cities
+    ]
+    return render(request, 'shandong/province.html', {
+        'cities': cities,
+        'city_stats': city_stats,
+        'high_end_communities': _high_end_communities(),
+    })
 
 
 def city_detail(request, city_name):
@@ -145,6 +159,25 @@ def api_house_filter(request):
         'page': page,
         'pages': paginator.num_pages,
     })
+
+
+def _high_end_communities():
+    data = (
+        House.objects.filter(unit_price__gt=60000)
+        .values('mingcheng', 'city', 'region')
+        .annotate(count=Count('id'), avg_price=Avg('unit_price'))
+        .order_by('-count', '-avg_price')[:20]
+    )
+    return [
+        {
+            'name': item['mingcheng'] or '未知小区',
+            'city': item['city'] or '',
+            'region': item['region'] or '',
+            'count': item['count'] or 0,
+            'avg_price': round(float(item['avg_price'] or 0)),
+        }
+        for item in data
+    ]
 
 
 def _png_response(buf):
