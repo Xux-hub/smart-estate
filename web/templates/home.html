@@ -230,7 +230,7 @@
         gap: 12px 18px;
     }
 
-    .word-cloud span {
+    .word-cloud a {
         display: inline-flex;
         align-items: center;
         line-height: 1.1;
@@ -238,6 +238,14 @@
         font-size: var(--word-size);
         font-weight: 800;
         opacity: .92;
+        text-decoration: none;
+        transition: transform .15s ease, opacity .15s ease;
+    }
+
+    .word-cloud a:hover {
+        opacity: 1;
+        transform: translateY(-2px);
+        text-decoration: underline;
     }
 
     .quick-chart {
@@ -676,7 +684,8 @@ wordCloud.innerHTML = communityWords.slice(0, 60).map((item, index) => {
     const ratio = (item.value || 0) / maxWord;
     const size = 13 + Math.round(ratio * 25);
     const color = colors[index % colors.length];
-    return '<span title="' + item.name + '：' + item.value + '套" style="--word-size:' + size + 'px;--word-color:' + color + ';">' + item.name + '</span>';
+    const searchUrl = "{% url 'house:search' %}?q=" + encodeURIComponent(item.name);
+    return '<a href="' + searchUrl + '" title="' + item.name + '：' + item.value + '套，点击搜索" style="--word-size:' + size + 'px;--word-color:' + color + ';">' + item.name + '</a>';
 }).join('');
 
 const priceChart = echarts.init(document.getElementById('cityPriceChart'));
