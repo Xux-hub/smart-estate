@@ -42,4 +42,6 @@ analysis/prediction/models/*.pkl
 node_modules/
 
 # uv
-uv.lock
+.pytest_cache/
+!analysis/prediction/models/house_price_pipeline.pkl
+!analysis/prediction/models/future_random_forest.pkl

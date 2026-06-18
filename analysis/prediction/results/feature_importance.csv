@@ -1,0 +1,221 @@
+﻿feature,importance
+numeric__area,0.224850110909219
+categorical__region_崂山,0.22462197486362195
+categorical__region_市南,0.2156725548785905
+categorical__region_李沧,0.09791439140450879
+categorical__region_市北,0.09539402157804583
+categorical__region_胶州,0.01535431950534477
+categorical__region_即墨,0.009936076055882396
+categorical__zhuangxiu_精装,0.007992103904373271
+categorical__chaoxiang_南 北,0.007913821457097538
+categorical__chaoxiang_南,0.007064791883642816
+categorical__zhuangxiu_简装,0.0066556849800976075
+categorical__huxing_3室2厅1厨2卫,0.0060121468380058725
+categorical__zhuangxiu_其他,0.005484056066347653
+categorical__huxing_4室2厅1厨2卫,0.004733902783514329
+categorical__huxing_2室1厅1厨1卫,0.004528644945827919
+categorical__huxing_3室1厅1厨1卫,0.004397998981962776
+categorical__huxing_3室2厅1厨1卫,0.004267738723495501
+categorical__zhuangxiu_毛坯,0.004095349235587306
+categorical__huxing_2室2厅1厨1卫,0.003498949902897015
+categorical__huxing_3室1厅1厨2卫,0.00290940142231684
+categorical__huxing_2室2厅1厨2卫,0.0025808925173088494
+categorical__huxing_4室2厅1厨3卫,0.0025645328774221016
+categorical__huxing_5室2厅1厨2卫,0.0025643250826576443
+categorical__chaoxiang_东 南 北,0.0019181377070257243
+categorical__chaoxiang_南 西 北,0.0017814421638735203
+categorical__huxing_5室2厅1厨3卫,0.0016794193955898876
+categorical__huxing_1室1厅1厨1卫,0.0015836707331670012
+categorical__chaoxiang_北 南,0.0014177362501331507
+categorical__huxing_2室1厅1厨2卫,0.0013436973864177281
+categorical__region_城阳,0.0012349359890433359
+categorical__huxing_4室1厅1厨2卫,0.0011400942620858386
+categorical__chaoxiang_东南,0.0011397823093950493
+categorical__region_黄岛,0.0010750444528449497
+categorical__huxing_3室2厅1厨3卫,0.001058057639773103
+categorical__chaoxiang_西南,0.0009055744003672776
+categorical__chaoxiang_东 西,0.000901232637300128
+categorical__chaoxiang_东 南,0.0008674432557648559
+categorical__chaoxiang_西,0.0008324212072641319
+categorical__chaoxiang_东,0.0007338105371499238
+categorical__huxing_2室0厅1厨1卫,0.0007101320461863113
+categorical__huxing_5室1厅1厨2卫,0.000646359031293729
+categorical__huxing_6室2厅1厨2卫,0.0006190687736465707
+categorical__huxing_1室0厅1厨1卫,0.0006101916851100163
+categorical__huxing_5室3厅1厨2卫,0.0006066491712279617
+categorical__chaoxiang_南 西,0.0005699804277751687
+categorical__chaoxiang_南 北 西,0.0005660337847917978
+categorical__huxing_3室0厅1厨1卫,0.0005512164338261199
+categorical__chaoxiang_南 东,0.0005505365850457398
+categorical__chaoxiang_北,0.0005410021719889026
+categorical__huxing_5室3厅1厨3卫,0.0005172025402819204
+categorical__chaoxiang_东南 南,0.000515298427901317
+categorical__huxing_4室2厅1厨1卫,0.00046809122641236104
+categorical__chaoxiang_南 北 东,0.0004326460235360195
+categorical__huxing_6室2厅1厨3卫,0.00039741420928827374
+categorical__huxing_4室1厅1厨3卫,0.00039329872326340434
+categorical__huxing_1室2厅1厨1卫,0.00039080348399843834
+categorical__chaoxiang_西北,0.00038270072162829963
+categorical__huxing_4室3厅1厨3卫,0.00034869873024956393
+categorical__chaoxiang_东南 北,0.0003222071966985925
+categorical__huxing_4室3厅1厨2卫,0.0003189655055698398
+categorical__chaoxiang_西 北,0.00030001423991362914
+categorical__chaoxiang_西南 西,0.00029321152800901735
+categorical__huxing_3室3厅1厨2卫,0.0002855161535859757
+categorical__huxing_3室2厅2厨1卫,0.0002843591323668238
+categorical__chaoxiang_南 东南,0.00028318590288168145
+categorical__huxing_3室1厅0厨1卫,0.0002757987253337908
+categorical__huxing_4室2厅2厨2卫,0.0002695227597429266
+categorical__huxing_4室2厅1厨4卫,0.00026636902931264186
+categorical__huxing_4室1厅1厨1卫,0.00025785708227414107
+categorical__huxing_8室2厅1厨2卫,0.0002196345743698622
+categorical__chaoxiang_东 南 西 北,0.00021610646063562443
+categorical__chaoxiang_东北,0.0002112493242184902
+categorical__huxing_3室2厅2厨2卫,0.0002082931059264569
+categorical__huxing_6室2厅2厨2卫,0.0001954529339104552
+categorical__huxing_6室4厅2厨4卫,0.00016926143029182016
+categorical__chaoxiang_东南 西南,0.00016511559267065414
+categorical__huxing_7室3厅1厨3卫,0.00016210061240043132
+categorical__chaoxiang_南 西南,0.00015872703269864734
+categorical__huxing_6室3厅1厨3卫,0.00015210646900457996
+categorical__chaoxiang_西南 东北,0.00015148914728266703
+categorical__huxing_5室2厅2厨2卫,0.00014412521919130532
+categorical__huxing_6室1厅1厨2卫,0.00013201859396200645
+categorical__chaoxiang_东 北,0.00013010143018616865
+categorical__chaoxiang_东南 西北,0.000129343069768905
+categorical__huxing_3室1厅1厨3卫,0.00012919376245269903
+categorical__chaoxiang_东北 南,0.00012755903552559808
+categorical__chaoxiang_东 东南,0.0001249791041500693
+categorical__huxing_6室3厅1厨4卫,0.00011917393693651662
+categorical__huxing_3室2厅1厨4卫,0.00011878514706085532
+categorical__chaoxiang_东 东南 西,0.00011547326755271223
+categorical__chaoxiang_东 西 北,0.00010468728145078474
+categorical__huxing_6室1厅1厨3卫,9.990906847403827e-05
+categorical__huxing_8室1厅1厨2卫,9.851012173196297e-05
+categorical__huxing_5室3厅2厨3卫,9.428411321446502e-05
+categorical__huxing_1室0厅0厨1卫,9.342698110936856e-05
+categorical__huxing_1室1厅1厨0卫,8.903445649729895e-05
+categorical__huxing_2室2厅1厨3卫,8.605170146987373e-05
+categorical__huxing_6室3厅1厨2卫,8.361117810486907e-05
+categorical__huxing_6室2厅1厨4卫,8.156832393586589e-05
+categorical__huxing_4室1厅0厨1卫,8.001446009111558e-05
+categorical__huxing_7室2厅1厨3卫,7.913202975152882e-05
+categorical__chaoxiang_南 东 北,7.780175285705274e-05
+categorical__chaoxiang_东南 南 北,7.64475531788599e-05
+categorical__chaoxiang_南 西北,7.498177690001286e-05
+categorical__huxing_18室0厅0厨2卫,7.181055527064512e-05
+categorical__huxing_5室4厅1厨2卫,6.933968241067377e-05
+categorical__huxing_4室0厅1厨1卫,6.147513888864405e-05
+categorical__huxing_5室4厅2厨2卫,5.8856175523248964e-05
+categorical__chaoxiang_西 东,5.796425594535788e-05
+categorical__huxing_4室2厅2厨3卫,5.481073110477158e-05
+categorical__huxing_2室1厅0厨1卫,5.183785817635953e-05
+categorical__chaoxiang_东 南 西,5.128846661757309e-05
+categorical__chaoxiang_北 西,4.8460178961469064e-05
+categorical__huxing_6室4厅1厨2卫,4.63918133458904e-05
+categorical__huxing_3室3厅2厨2卫,4.610341419636543e-05
+categorical__chaoxiang_东南 南 西南,4.376700531702869e-05
+categorical__chaoxiang_南 西 西南,4.1931606529656546e-05
+categorical__chaoxiang_东南 西北 南,4.1457431978967455e-05
+categorical__chaoxiang_西 南 北,4.128935109805659e-05
+categorical__chaoxiang_东 西南 西 南,3.8254211614310246e-05
+categorical__huxing_4室1厅1厨4卫,3.718543739336256e-05
+categorical__huxing_3室1厅1厨4卫,3.7180847050474805e-05
+categorical__chaoxiang_南 北 东南 西北,3.502301291514472e-05
+categorical__huxing_4室1厅2厨2卫,3.4630395434442934e-05
+categorical__huxing_3室0厅1厨2卫,3.379310180513972e-05
+categorical__huxing_4室7厅1厨5卫,3.060879194181873e-05
+categorical__huxing_6室4厅1厨3卫,3.024933149579973e-05
+categorical__huxing_4室4厅1厨2卫,2.811675954319574e-05
+categorical__huxing_3室3厅1厨3卫,2.806299374515349e-05
+categorical__huxing_4室3厅2厨2卫,2.732199027623106e-05
+categorical__huxing_5室2厅2厨3卫,2.4495323042753766e-05
+categorical__chaoxiang_南 东南 北,2.425209633479363e-05
+categorical__huxing_5室2厅1厨1卫,2.3363864810622992e-05
+categorical__huxing_6室3厅2厨4卫,2.331763082454539e-05
+categorical__huxing_7室2厅1厨4卫,2.325041795661832e-05
+categorical__chaoxiang_西 西北,2.2993177866549656e-05
+categorical__huxing_2室1厅2厨1卫,2.2953790134273773e-05
+categorical__huxing_1室2厅1厨2卫,2.1410421947822856e-05
+categorical__chaoxiang_南 西南 北,2.1371840427689477e-05
+categorical__chaoxiang_北 南 西,2.0205692654004906e-05
+categorical__chaoxiang_西南 北,1.9960699096237967e-05
+categorical__huxing_7室1厅1厨3卫,1.958931814664203e-05
+categorical__chaoxiang_北 西 南,1.9497162951875734e-05
+categorical__chaoxiang_西南 东,1.897259340043319e-05
+categorical__chaoxiang_东 北 西南,1.7961474291414062e-05
+categorical__chaoxiang_东南 西,1.7178560805902307e-05
+categorical__huxing_1室1厅0厨0卫,1.711534759858957e-05
+categorical__chaoxiang_东 东南 南,1.7041056241169547e-05
+categorical__chaoxiang_西 南 东北,1.6898472087057485e-05
+categorical__huxing_6室2厅2厨4卫,1.648543953066166e-05
+categorical__huxing_5室4厅1厨4卫,1.5888732248989103e-05
+categorical__chaoxiang_西 西南,1.5162960019454566e-05
+categorical__huxing_6室2厅1厨1卫,1.470847801047952e-05
+categorical__huxing_1室0厅0厨0卫,1.434302832764786e-05
+categorical__chaoxiang_西北 东南,1.4262217962567284e-05
+categorical__huxing_6室4厅1厨4卫,1.4022490327495922e-05
+categorical__huxing_5室2厅1厨4卫,1.36803912578471e-05
+categorical__chaoxiang_南 东北,1.2032350979955192e-05
+categorical__chaoxiang_东南 南 西北,1.1567726046446232e-05
+categorical__huxing_2室3厅1厨2卫,1.1326142356147372e-05
+categorical__chaoxiang_北 东 西,1.0824550572204992e-05
+categorical__chaoxiang_东 西 南,1.054291959878422e-05
+categorical__huxing_8室4厅1厨3卫,1.040232822358495e-05
+categorical__huxing_7室1厅1厨2卫,1.0249315878731925e-05
+categorical__chaoxiang_西南 南,9.346706876884754e-06
+categorical__chaoxiang_西 南,7.970438922993313e-06
+categorical__chaoxiang_东 南 西南 北,7.415596236161858e-06
+categorical__chaoxiang_东南 东 南,7.407757232034676e-06
+categorical__huxing_3室1厅2厨2卫,7.172517700668642e-06
+categorical__huxing_1室1厅1厨2卫,6.6010372757477935e-06
+categorical__huxing_2室2厅2厨1卫,6.36524593004715e-06
+categorical__huxing_3室3厅1厨1卫,6.2672082487517826e-06
+categorical__huxing_5室3厅1厨1卫,6.174747364121215e-06
+categorical__huxing_3室1厅2厨1卫,5.934399930107697e-06
+categorical__huxing_5室1厅1厨3卫,5.7060004839543895e-06
+categorical__chaoxiang_北 西 东,5.624281783564005e-06
+categorical__chaoxiang_北 南 东,5.359786055239782e-06
+categorical__chaoxiang_北 东南,5.328876493873368e-06
+categorical__huxing_4室2厅0厨1卫,4.96913237834213e-06
+categorical__chaoxiang_北 东 南,4.486766594957488e-06
+categorical__chaoxiang_东 东北,4.096733260123444e-06
+categorical__huxing_3室2厅1厨0卫,4.055796208576167e-06
+categorical__huxing_2室1厅0厨0卫,4.0478868899209595e-06
+categorical__chaoxiang_南 北 东南,3.970852645495609e-06
+categorical__huxing_8室1厅1厨3卫,3.9495306355552575e-06
+categorical__chaoxiang_东南 东北,3.7390618013289585e-06
+categorical__huxing_3室1厅1厨0卫,3.725399052904415e-06
+categorical__huxing_5室1厅1厨1卫,3.3688525064467556e-06
+categorical__huxing_4室3厅1厨1卫,3.3357741000985827e-06
+categorical__chaoxiang_东南 东,2.927139644299013e-06
+categorical__huxing_9室3厅1厨2卫,2.8509750487290277e-06
+categorical__chaoxiang_南 北 西南 西,2.5662749699500127e-06
+categorical__huxing_5室3厅2厨2卫,2.407661520174364e-06
+categorical__huxing_4室4厅2厨2卫,2.107097174546167e-06
+categorical__chaoxiang_东南 西南 东北 南,1.8405961700447842e-06
+categorical__chaoxiang_南 西南 西北,1.747145816092061e-06
+categorical__chaoxiang_南 西 东,1.3852362830796434e-06
+categorical__huxing_7室2厅1厨2卫,1.2710506466870916e-06
+categorical__huxing_4室3厅1厨4卫,1.2354728143589608e-06
+categorical__huxing_1室2厅0厨1卫,1.230084808618167e-06
+categorical__huxing_5室3厅1厨4卫,1.2277583038468637e-06
+categorical__huxing_3室2厅0厨2卫,1.147332433281895e-06
+categorical__chaoxiang_南 西 西北,1.1460705756521502e-06
+categorical__chaoxiang_北 东,1.0886082062571772e-06
+categorical__chaoxiang_南 西南 西,1.0776542127754608e-06
+categorical__chaoxiang_东 北 南,1.0773811156279816e-06
+categorical__huxing_2室0厅0厨0卫,9.782533421936247e-07
+categorical__chaoxiang_东 东南 南 北,9.18587775643775e-07
+categorical__huxing_8室4厅2厨2卫,7.977590210015072e-07
+categorical__huxing_4室2厅2厨1卫,7.888775343200313e-07
+categorical__huxing_3室2厅0厨1卫,7.785585251045944e-07
+categorical__chaoxiang_西 北 南,7.535758459775815e-07
+categorical__huxing_2室2厅1厨0卫,3.0022680309468127e-07
+categorical__chaoxiang_南 北 东 东南,2.8194249987488716e-07
+categorical__chaoxiang_北 西 西北,1.9709036696120622e-07
+categorical__chaoxiang_西 西北 北,1.8457981381621952e-07
+categorical__huxing_1室1厅0厨1卫,1.1623861555606008e-07
+categorical__huxing_0室0厅0厨0卫,1.0127863351328102e-07
+categorical__huxing_3室0厅0厨0卫,8.919398161045137e-08
+categorical__huxing_4室3厅2厨3卫,4.8733281117351694e-08
