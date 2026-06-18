@@ -10,9 +10,15 @@
         background: #07113a;
     }
 
+    body > footer {
+        display: none;
+    }
+
     .dashboard {
-        min-height: calc(100vh - 56px);
-        padding: 12px 14px 14px;
+        height: calc(100vh - 56px);
+        min-height: 680px;
+        overflow: hidden;
+        padding: 10px 14px 12px;
         color: #dff3ff;
         background:
             radial-gradient(circle at 50% 8%, rgba(0, 126, 255, .32), transparent 30%),
@@ -20,12 +26,12 @@
     }
 
     .dash-header {
-        height: 48px;
+        height: 44px;
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         border-top: 1px solid #1769ff;
     }
 
@@ -41,7 +47,7 @@
         margin: 0;
         padding: 0 42px;
         color: #25c7ff;
-        font-size: 28px;
+        font-size: 26px;
         font-weight: 900;
         text-shadow: 0 0 14px rgba(37, 199, 255, .8);
         border-bottom: 4px solid #1769ff;
@@ -49,15 +55,16 @@
 
     .dash-layout {
         display: grid;
-        grid-template-columns: 28% 1fr 28%;
-        gap: 24px;
-        min-height: calc(100vh - 130px);
+        grid-template-columns: minmax(300px, 28%) minmax(480px, 1fr) minmax(300px, 28%);
+        gap: 18px;
+        height: calc(100% - 54px);
+        min-height: 0;
     }
 
     .dash-column {
         display: grid;
-        grid-template-rows: 1fr 1fr;
-        gap: 14px;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
         min-height: 0;
     }
 
@@ -94,12 +101,12 @@
     }
 
     .panel-title {
-        height: 44px;
+        height: 40px;
         display: flex;
         align-items: center;
         padding: 0 18px;
         color: #fff;
-        font-size: 18px;
+        font-size: 17px;
         font-weight: 800;
         background: linear-gradient(90deg, rgba(28, 91, 214, .78), rgba(28, 91, 214, .18));
     }
@@ -114,8 +121,8 @@
 
     .dash-chart {
         width: 100%;
-        height: calc(100% - 44px);
-        min-height: 300px;
+        height: calc(100% - 40px);
+        min-height: 0;
     }
 
     .map-panel {
@@ -123,7 +130,7 @@
     }
 
     .map-head {
-        height: 44px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -144,14 +151,14 @@
 
     #shandongMap {
         width: 100%;
-        height: calc(100% - 44px);
-        min-height: 670px;
+        height: calc(100% - 40px);
+        min-height: 0;
     }
 
     .word-cloud {
-        height: calc(100% - 44px);
-        min-height: 300px;
-        padding: 24px;
+        height: calc(100% - 40px);
+        min-height: 0;
+        padding: 18px;
         display: flex;
         align-content: center;
         align-items: center;
@@ -175,9 +182,16 @@
         opacity: .9;
     }
 
-    @media (max-width: 1200px) {
+    @media (max-width: 1200px), (max-height: 760px) {
+        .dashboard {
+            height: auto;
+            min-height: calc(100vh - 56px);
+            overflow: visible;
+        }
+
         .dash-layout {
             grid-template-columns: 1fr;
+            height: auto;
         }
 
         .dash-column {
@@ -185,11 +199,21 @@
         }
 
         .dash-panel {
-            min-height: 360px;
+            min-height: 320px;
+        }
+
+        .dash-chart {
+            height: 280px;
         }
 
         #shandongMap {
-            min-height: 560px;
+            height: 520px;
+            min-height: 520px;
+        }
+
+        .word-cloud {
+            height: 280px;
+            min-height: 280px;
         }
     }
 </style>
