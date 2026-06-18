@@ -56,18 +56,35 @@
         text-decoration: none;
     }
 
-    .map-section {
+    .city-layout {
         display: grid;
-        grid-template-columns: 252px minmax(0, 1fr);
-        gap: 20px;
-        min-height: 640px;
-        padding: 0 20px 20px 0;
+        grid-template-columns: 330px minmax(720px, 1fr) 340px;
+        gap: 18px;
+        min-height: calc(100vh - 178px);
+        padding: 0 18px 24px;
+        align-items: start;
+    }
+
+    .left-rail,
+    .right-rail,
+    .center-stage {
+        min-width: 0;
+        display: grid;
+        gap: 14px;
+        align-content: start;
+    }
+
+    .center-stage {
+        grid-template-columns: 220px minmax(0, 1fr);
+        align-items: start;
     }
 
     .aside {
         background-color: #fff;
         box-shadow: 0 2px 8px 0 #11234512;
         overflow-y: auto;
+        height: 720px;
+        border-radius: 4px;
     }
 
     .aside_title {
@@ -104,7 +121,7 @@
 
     .map {
         min-width: 0;
-        min-height: 640px;
+        min-height: 720px;
         background: #fff;
         border-radius: 4px;
         box-shadow: 0 2px 12px rgba(17, 35, 69, 0.05);
@@ -114,28 +131,19 @@
     #district_map {
         width: 100%;
         height: 100%;
-        min-height: 640px;
+        min-height: 720px;
     }
 
-    .charts-section {
-        padding: 20px;
-        max-width: 1400px;
-        margin: 0 auto;
-    }
-
-    .charts-section h3 {
+    .analysis-heading {
         font-size: 18px;
         font-weight: 800;
-        color: #333;
-        margin-bottom: 16px;
-        padding-left: 12px;
-        border-left: 4px solid #1672fd;
-    }
-
-    .chart-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
+        color: #111827;
+        margin: 0;
+        padding: 16px 18px;
+        background: #fff;
+        border: 1px solid #e5ebf2;
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(17, 44, 73, .06);
     }
 
     .chart-card {
@@ -159,41 +167,58 @@
     }
 
     .chart-card .card-body {
-        padding: 10px;
+        padding: 8px;
         text-align: center;
     }
 
     .chart-card .card-body img {
         max-width: 100%;
+        max-height: 245px;
         height: auto;
         display: block;
+        margin: 0 auto;
+        object-fit: contain;
     }
 
-    .chart-card.full-width {
-        grid-column: 1 / -1;
+    .chart-card.is-tall .card-body img {
+        max-height: 320px;
+    }
+
+    @media (max-width: 1500px) {
+        .city-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .left-rail,
+        .right-rail {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .analysis-heading {
+            grid-column: 1 / -1;
+        }
     }
 
     @media (max-width: 992px) {
-        .map-section {
+        .city-layout,
+        .left-rail,
+        .center-stage,
+        .right-rail {
             grid-template-columns: 1fr;
+        }
+
+        .city-layout {
             padding: 0 12px 16px;
         }
 
         .aside {
+            height: auto;
             max-height: 260px;
         }
 
         .map,
         #district_map {
             min-height: 520px;
-        }
-
-        .chart-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .chart-card.full-width {
-            grid-column: span 1;
         }
     }
 </style>
@@ -212,26 +237,10 @@
     <span>{{ city.name }}</span>
 </nav>
 
-<div class="map-section">
-    <aside class="aside">
-        <div class="aside_title">{{ city.name }}</div>
-        <div class="aside_content" id="districtList">
-            {% for d in districts %}
-            <a href="{% url 'shandong:district' city.name d.name %}">
-                {{ d.name }}
-                <span class="district-stat">{{ d.house_count }}套</span>
-            </a>
-            {% endfor %}
-        </div>
-    </aside>
-    <div class="map">
-        <div id="district_map"></div>
-    </div>
-</div>
+<div class="city-layout">
+    <section class="left-rail">
+        <h3 class="analysis-heading">{{ city.name }}房源数据分析</h3>
 
-<div class="charts-section">
-    <h3>{{ city.name }}房源数据分析</h3>
-    <div class="chart-grid">
         <div class="chart-card">
             <div class="card-title">⑤ 热门户型 Top5</div>
             <div class="card-body">
@@ -240,16 +249,36 @@
         </div>
 
         <div class="chart-card">
-            <div class="card-title">⑥ 楼层占比</div>
-            <div class="card-body">
-                <img src="{% url 'shandong:chart_floor_pie' %}?city={{ city.name }}" alt="楼层占比" loading="lazy">
-            </div>
-        </div>
-
-        <div class="chart-card">
             <div class="card-title">⑦ 楼层均价</div>
             <div class="card-body">
                 <img src="{% url 'shandong:chart_floor_avg_price' %}?city={{ city.name }}" alt="楼层均价" loading="lazy">
+            </div>
+        </div>
+    </section>
+
+    <section class="center-stage">
+        <aside class="aside">
+            <div class="aside_title">{{ city.name }}</div>
+            <div class="aside_content" id="districtList">
+                {% for d in districts %}
+                <a href="{% url 'shandong:district' city.name d.name %}">
+                    {{ d.name }}
+                    <span class="district-stat">{{ d.house_count }}套</span>
+                </a>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <div class="map">
+            <div id="district_map"></div>
+        </div>
+    </section>
+
+    <section class="right-rail">
+        <div class="chart-card">
+            <div class="card-title">⑥ 楼层占比</div>
+            <div class="card-body">
+                <img src="{% url 'shandong:chart_floor_pie' %}?city={{ city.name }}" alt="楼层占比" loading="lazy">
             </div>
         </div>
 
@@ -260,13 +289,13 @@
             </div>
         </div>
 
-        <div class="chart-card full-width">
+        <div class="chart-card is-tall">
             <div class="card-title">⑨ 面积区间分布</div>
             <div class="card-body">
                 <img src="{% url 'shandong:chart_area_distribution' %}?city={{ city.name }}" alt="面积分布" loading="lazy">
             </div>
         </div>
-    </div>
+    </section>
 </div>
 {% endblock %}
 
