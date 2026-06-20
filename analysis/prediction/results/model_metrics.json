@@ -1,63 +1,66 @@
 {
+  "scope": "山东省",
   "data_quality": {
-    "records_after_basic_clean": 19873,
-    "area_min": 11.66,
-    "area_max": 715.71,
-    "unit_price_min": 2343.0,
+    "records_after_basic_clean": 128138,
+    "city_count": 10,
+    "region_count": 66,
+    "area_min": 11.08,
+    "area_max": 900.0,
+    "unit_price_min": 611.0,
     "unit_price_max": 179989.0,
-    "records_after_outlier_clean": 18268
+    "records_after_outlier_clean": 119172
   },
   "default_random_forest_before_price_cleaning": {
-    "mae": 4417.537892015936,
-    "rmse": 7313.315832414262,
-    "r2": 0.6945180920972842
+    "mae": 2889.961310254923,
+    "rmse": 4848.1076091010145,
+    "r2": 0.6474906078033696
   },
   "default_random_forest_after_price_cleaning": {
-    "mae": 3476.8067755301013,
-    "rmse": 4954.66049523307,
-    "r2": 0.7261695652277073
+    "mae": 2263.333838236968,
+    "rmse": 3304.878225440079,
+    "r2": 0.7428510513335349
   },
   "model_comparison": [
     {
       "model": "LinearRegression",
-      "cv_mae": 3604.8983692402,
-      "cv_rmse": 4932.4692863134,
-      "cv_r2": 0.7312631079,
-      "cv_r2_std": 0.010568539
-    },
-    {
-      "model": "RandomForest",
-      "cv_mae": 3532.103981049,
-      "cv_rmse": 5011.9649236621,
-      "cv_r2": 0.722650423,
-      "cv_r2_std": 0.005944097
+      "cv_mae": 1975.9749966739,
+      "cv_rmse": 2931.3562222351,
+      "cv_r2": 0.7986319922,
+      "cv_r2_std": 0.002306845
     },
     {
       "model": "DecisionTree",
-      "cv_mae": 4403.9951056923,
-      "cv_rmse": 6359.7345386074,
-      "cv_r2": 0.5532361841,
-      "cv_r2_std": 0.0155356041
+      "cv_mae": 2009.4041524013,
+      "cv_rmse": 3085.900659565,
+      "cv_r2": 0.7767959989,
+      "cv_r2_std": 0.0060055305
+    },
+    {
+      "model": "RandomForest",
+      "cv_mae": 2261.8309798973,
+      "cv_rmse": 3313.4342127896,
+      "cv_r2": 0.7427437583,
+      "cv_r2_std": 0.001676105
     }
   ],
   "best_params": {
-    "model__max_depth": null,
+    "model__max_depth": 22,
     "model__max_features": "sqrt",
     "model__min_samples_leaf": 1,
     "model__min_samples_split": 5,
-    "model__n_estimators": 200
+    "model__n_estimators": 120
   },
   "optimized_random_forest": {
-    "mae": 3554.825530275195,
-    "rmse": 4976.338147505103,
-    "r2": 0.7237681952202686
+    "mae": 2155.755618380008,
+    "rmse": 3146.8837523297157,
+    "r2": 0.7668501019312429
   },
   "final_model": {
-    "name": "DefaultRandomForestAfterCleaning",
+    "name": "OptimizedRandomForest",
     "metrics": {
-      "mae": 3476.8067755301013,
-      "rmse": 4954.66049523307,
-      "r2": 0.7261695652277073
+      "mae": 2155.755618380008,
+      "rmse": 3146.8837523297157,
+      "r2": 0.7668501019312429
     }
   }
 }
