@@ -3,6 +3,7 @@ Django==4.1.13
 djangorestframework==3.14.0
 
 # Database
+# MySQL Server: 8.0.31
 PyMySQL==1.1.1
 mysqlclient==2.2.4
 redis==5.0.8
@@ -10,6 +11,7 @@ redis==5.0.8
 # Data Crawling
 Scrapy==2.11.2
 scrapy-redis==0.7.3
+Twisted==22.10.0
 requests==2.32.3
 lxml==5.3.0
 fake-useragent==1.5.1

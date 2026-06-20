@@ -156,9 +156,12 @@
     }
 
     .word-cloud {
-        height: calc(100% - 40px);
+        height: calc(100% - 72px);
         min-height: 0;
-        padding: 18px 22px;
+        width: min(92%, 360px);
+        margin: 16px auto;
+        box-sizing: border-box;
+        padding: 58px 28px 26px;
         display: flex;
         align-content: center;
         align-items: center;
@@ -166,6 +169,8 @@
         flex-wrap: wrap;
         gap: 8px 12px;
         overflow: hidden;
+        clip-path: polygon(50% 0, 96% 35%, 86% 35%, 86% 100%, 14% 100%, 14% 35%, 4% 35%);
+        background: linear-gradient(180deg, rgba(31, 124, 255, .12), rgba(0, 166, 255, .04));
     }
 
     .word-cloud a {
@@ -213,8 +218,9 @@
         }
 
         .word-cloud {
-            height: 280px;
-            min-height: 280px;
+            height: 248px;
+            min-height: 248px;
+            width: min(92%, 420px);
         }
     }
 </style>

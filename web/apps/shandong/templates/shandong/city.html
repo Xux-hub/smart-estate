@@ -11,6 +11,10 @@
         background: #eef2f7;
     }
 
+    body > footer {
+        display: none;
+    }
+
     .city-title-bar {
         height: 72px;
         display: flex;
@@ -242,14 +246,14 @@
         <h3 class="analysis-heading">{{ city.name }}房源数据分析</h3>
 
         <div class="chart-card">
-            <div class="card-title">⑤ 热门户型 Top5</div>
+            <div class="card-title">热门户型 Top5</div>
             <div class="card-body">
                 <img src="{% url 'shandong:chart_top5_layouts' %}?city={{ city.name }}" alt="户型Top5" loading="lazy">
             </div>
         </div>
 
         <div class="chart-card">
-            <div class="card-title">⑦ 楼层均价</div>
+            <div class="card-title">楼层均价</div>
             <div class="card-body">
                 <img src="{% url 'shandong:chart_floor_avg_price' %}?city={{ city.name }}" alt="楼层均价" loading="lazy">
             </div>
@@ -276,21 +280,21 @@
 
     <section class="right-rail">
         <div class="chart-card">
-            <div class="card-title">⑥ 楼层占比</div>
+            <div class="card-title">楼层占比</div>
             <div class="card-body">
                 <img src="{% url 'shandong:chart_floor_pie' %}?city={{ city.name }}" alt="楼层占比" loading="lazy">
             </div>
         </div>
 
         <div class="chart-card">
-            <div class="card-title">⑧ 装修结构</div>
+            <div class="card-title">装修结构</div>
             <div class="card-body">
                 <img src="{% url 'shandong:chart_decoration' %}?city={{ city.name }}" alt="装修结构" loading="lazy">
             </div>
         </div>
 
         <div class="chart-card is-tall">
-            <div class="card-title">⑨ 面积区间分布</div>
+            <div class="card-title">面积区间分布</div>
             <div class="card-body">
                 <img src="{% url 'shandong:chart_area_distribution' %}?city={{ city.name }}" alt="面积分布" loading="lazy">
             </div>

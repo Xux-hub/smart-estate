@@ -21,5 +21,5 @@ class RandomUserAgentMiddleware:
     def from_crawler(cls, crawler):
         return cls()
 
-    def process_request(self, request):
+    def process_request(self, request, spider):
         request.headers['User-Agent'] = random.choice(self.USER_AGENTS)

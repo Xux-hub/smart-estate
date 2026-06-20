@@ -1,8 +1,9 @@
+
 # 智慧房产探索平台 (Smart Estate)
 
 ## 项目简介
 
-基于 Python 构建的智慧房产探索平台，通过采集链家二手房网站数据，存储到数据库中，对整体房价进行分析和预测，构建可视化房产平台。帮助用户快速了解城市与各区域房源及价格情况，找到合适的房源，辅助房地产投资者寻找投资机会。
+基于 Python 构建的智慧房产探索平台，通过采集目标房源网站数据，存储到数据库中，对整体房价进行分析和预测，构建可视化房产平台。帮助用户快速了解城市与各区域房源及价格情况，找到合适的房源，辅助房地产投资者寻找投资机会。
 
 ## 技术架构总览
 
@@ -18,7 +19,7 @@
 │   Pandas + Numpy + Matplotlib + Seaborn + Sklearn           │
 ├─────────────────────────────────────────────────────────────┤
 │                      数据采集层                               │
-│   Scrapy 2.16 (链家爬虫 + Django ORM 入库)                   │
+│   Scrapy 2.16 (房源网站爬虫 + Django ORM 入库)               │
 ├─────────────────────────────────────────────────────────────┤
 │                      数据存储层                               │
 │   SQLite(开发) / MySQL(生产)                                 │
@@ -31,8 +32,7 @@
 
 | 功能 | 说明 |
 |------|------|
-| 房源数据爬取 | 采集链家平台二手房列表页数据 |
-| 前端爬虫管理 | Web 界面选择城市、启动采集、查看任务状态 |
+| 房源数据爬取 | 采集目标房源网站二手房列表页和详情页数据 |
 | 数据清洗 | 价格/面积格式化、装修标准化、缺失值处理 |
 | Django ORM 入库 | 通过 Django ORM 存储，兼容 SQLite 和 MySQL |
 
@@ -82,7 +82,6 @@
 | 数据分析 | `/analysis/` | 房价分布、户型统计、面积-价格散点图 |
 | 区域对比 | `/analysis/compare/` | 多区域房价对比 |
 | 房价预测 | `/prediction/` | 各区域未来房价趋势预测 |
-| 爬虫管理 | `/house/crawler/` | 启动采集、任务状态、历史记录 |
 | 房源搜索 | `/house/search/` | 关键词搜索 |
 
 ## 技术栈详情
@@ -117,11 +116,10 @@ smart-estate/
 │       ├── pipelines.py        # 数据清洗 + Django ORM 入库
 │       ├── middlewares.py      # 随机 UA 中间件
 │       └── spiders/
-│           └── lianjia.py      # 链家爬虫
+│           └── house_source.py # 房源网站爬虫
 │
 ├── database/                   # 数据库模块
-│   ├── init_db.sql             # MySQL 初始化脚本
-│   └── seed_data.py            # 测试数据填充（PyMySQL 直连）
+│   └── init_db.sql             # MySQL 初始化脚本
 │
 ├── analysis/                   # 数据分析模块
 │   ├── price_analysis.py       # 房价分析
@@ -135,7 +133,7 @@ smart-estate/
 │   ├── wsgi.py
 │   ├── apps/
 │   │   ├── home/               # 首页
-│   │   ├── house/              # 房源 + 爬虫管理
+│   │   ├── house/              # 房源浏览与检索
 │   │   ├── analysis/           # 数据分析展示
 │   │   └── prediction/         # 房价预测
 │   ├── static/css/             # 自定义样式
@@ -183,11 +181,7 @@ uv run python manage.py runserver
 
 ### 使用爬虫采集真实数据
 
-方式一：通过 Web 界面（推荐）
-1. 访问 http://127.0.0.1:8000/house/crawler/
-2. 选择城市和页数，点击「启动采集」
-
-方式二：命令行
+通过命令行启动采集：
 ```bash
 uv run python scripts/start_crawler.py --city 北京 --pages 3
 ```

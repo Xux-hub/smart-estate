@@ -1,33 +1,38 @@
-"""
-Define the data models for scraped items.
-"""
+"""Scraped house item fields mapped to the house_info table."""
 import scrapy
 
 
 class HouseItem(scrapy.Item):
-    """房源数据模型"""
-    # 基本信息
-    title = scrapy.Field()          # 房源标题
-    total_price = scrapy.Field()    # 总价(万元)
-    unit_price = scrapy.Field()     # 单价(元/平米)
-    area = scrapy.Field()           # 面积(平米)
+    title = scrapy.Field()
+    city = scrapy.Field()
+    district = scrapy.Field()
+    source_url = scrapy.Field()
+    community = scrapy.Field()
+    quyu = scrapy.Field()
 
-    # 房屋属性
-    layout = scrapy.Field()         # 户型
-    orientation = scrapy.Field()    # 朝向
-    floor = scrapy.Field()          # 楼层描述
-    total_floor = scrapy.Field()    # 总楼层
-    decoration = scrapy.Field()     # 装修情况
-    elevator = scrapy.Field()       # 是否有电梯
-    house_year = scrapy.Field()     # 房屋年限/建筑年代
+    layout = scrapy.Field()
+    floor = scrapy.Field()
+    area = scrapy.Field()
+    huxingjiegou = scrapy.Field()
+    orientation = scrapy.Field()
+    jianzhujiegou = scrapy.Field()
+    decoration = scrapy.Field()
+    tihu = scrapy.Field()
+    listing_date = scrapy.Field()
+    quanshu = scrapy.Field()
+    diya = scrapy.Field()
 
-    # 位置信息
-    city = scrapy.Field()           # 城市
-    district = scrapy.Field()       # 区域
-    community = scrapy.Field()      # 小区名称
-    longitude = scrapy.Field()      # 经度
-    latitude = scrapy.Field()       # 纬度
+    total_price = scrapy.Field()
+    unit_price = scrapy.Field()
+    longitude = scrapy.Field()
+    latitude = scrapy.Field()
 
-    # 其他
-    listing_date = scrapy.Field()   # 挂牌日期
-    source_url = scrapy.Field()     # 来源链接
+    maidian = scrapy.Field()
+    jieshao = scrapy.Field()
+    huxingjieshao = scrapy.Field()
+    jiaotong = scrapy.Field()
+    mianji_group = scrapy.Field()
+
+    total_floor = scrapy.Field()
+    elevator = scrapy.Field()
+    house_year = scrapy.Field()

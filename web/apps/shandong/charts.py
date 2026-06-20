@@ -284,7 +284,7 @@ def chart_wordcloud():
 
 def _load_city_df(city_name):
     """加载某城市的房源数据到 DataFrame"""
-    qs = House.objects.filter(city=city_name).values(
+    qs = House.objects.filter(city__in=_city_name_variants(city_name)).values(
         'huxing', 'louceng', 'mianji', 'zhuangxiu', 'unit_price', 'price', 'mingcheng', 'shijian')
     df = pd.DataFrame(list(qs))
     if df.empty:
@@ -296,18 +296,31 @@ def _load_city_df(city_name):
         lambda t: '低楼层' if t and str(t).strip().startswith('低') else
                   '中楼层' if t and str(t).strip().startswith('中') else
                   '高楼层' if t and str(t).strip().startswith('高') else '其他')
-    intervals = [(0, 60, '<60㎡'), (60, 90, '60-90㎡'), (90, 120, '90-120㎡'),
-                 (120, 150, '120-150㎡'), (150, 200, '150-200㎡'), (200, 999, '>200㎡')]
+    intervals = [(0, 60, '60平以下'), (60, 90, '60-90平'), (90, 120, '90-120平'),
+                 (120, 150, '120-150平'), (150, 300, '150-300平'), (300, 99999, '300平以上')]
     df['area_group'] = df['mianji_num'].apply(
-        lambda m: next((l for lo, hi, l in intervals if lo <= (m or 0) < hi), '>200㎡')
+        lambda m: next((l for lo, hi, l in intervals if lo <= (m or 0) < hi), '300平以上')
         if not pd.isna(m) else '未知')
     return df
+
+
+def _city_name_variants(city_name):
+    name = str(city_name or '').strip()
+    if not name:
+        return []
+    variants = {name}
+    city_suffix = '\u5e02'
+    if name.endswith(city_suffix):
+        variants.add(name[:-1])
+    else:
+        variants.add(name + city_suffix)
+    return list(variants)
 
 
 def chart_top5_layouts(city_name):
     """⑤ 各城市热门户型 Top5"""
     _init_font()
-    data = House.objects.filter(city=city_name) \
+    data = House.objects.filter(city__in=_city_name_variants(city_name)) \
         .values('huxing').annotate(cnt=Count('id')).order_by('-cnt')[:5]
     if not data:
         return None
@@ -379,7 +392,7 @@ def chart_floor_avg_price(city_name):
 def chart_decoration(city_name):
     """⑧ 装修结构分布"""
     _init_font()
-    data = House.objects.filter(city=city_name) \
+    data = House.objects.filter(city__in=_city_name_variants(city_name)) \
         .values('zhuangxiu').annotate(cnt=Count('id')).order_by('-cnt')
     if not data:
         return None
@@ -407,7 +420,7 @@ def chart_area_distribution(city_name):
     df = _load_city_df(city_name)
     if df.empty:
         return None
-    order = ['<60㎡', '60-90㎡', '90-120㎡', '120-150㎡', '150-200㎡', '>200㎡']
+    order = ['60平以下', '60-90平', '90-120平', '120-150平', '150-300平', '300平以上']
     counts = df['area_group'].value_counts().reindex(order).fillna(0)
 
     fig, ax = plt.subplots(figsize=(8, 4.5))
