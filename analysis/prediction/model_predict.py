@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 from functools import lru_cache
 from pathlib import Path
@@ -8,66 +8,32 @@ import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent
 
-MODEL_PATH = (
-    BASE_DIR
-    / "models"
-    / "house_price_pipeline.pkl"
-)
-
-METRICS_PATH = (
-    BASE_DIR
-    / "results"
-    / "model_metrics.json"
-)
+MODEL_PATH = BASE_DIR / "models" / "house_price_pipeline.pkl"
+METRICS_PATH = BASE_DIR / "results" / "model_metrics.json"
 
 
 @lru_cache(maxsize=1)
 def load_pipeline():
-    """
-    加载当前房价估值模型。
-
-    模型在首次使用时读取，后续预测直接复用，
-    避免每次请求都重复加载文件。
-    """
     if not MODEL_PATH.exists():
         raise FileNotFoundError(
-            "未找到当前房价估值模型："
-            f"{MODEL_PATH}"
+            "未找到当前房价估值模型：" + str(MODEL_PATH)
         )
 
-    return joblib.load(
-        MODEL_PATH
-    )
+    return joblib.load(MODEL_PATH)
 
 
 @lru_cache(maxsize=1)
 def load_metrics():
-    """
-    读取训练阶段保存的模型评价指标。
-    """
     if not METRICS_PATH.exists():
         return {}
 
-    with METRICS_PATH.open(
-        "r",
-        encoding="utf-8",
-    ) as file:
+    with METRICS_PATH.open("r", encoding="utf-8") as file:
         return json.load(file)
 
 
 def normalize_text(value):
-    """
-    统一处理用户未填写的类别字段。
-    """
-    text = str(
-        value or ""
-    ).strip()
-
-    return (
-        text
-        if text
-        else "未知"
-    )
+    text = str(value or "").strip()
+    return text if text else "未知"
 
 
 def predict_unit_price(
@@ -76,57 +42,36 @@ def predict_unit_price(
     huxing="",
     chaoxiang="",
     zhuangxiu="",
+    city="青岛",
+    province="山东省",
     model_name="RandomForest",
 ):
-    """
-    根据房屋基本信息预测当前单价。
-
-    model_name保留原有接口兼容性，
-    当前实际使用训练阶段保存的最终随机森林。
-    """
     area_value = float(area)
 
     if area_value <= 0:
-        raise ValueError(
-            "建筑面积必须大于0"
-        )
+        raise ValueError("建筑面积必须大于0")
 
     input_data = pd.DataFrame([
         {
+            "city": normalize_text(city),
+            "region": normalize_text(region),
             "area": area_value,
-            "region": normalize_text(
-                region
-            ),
-            "huxing": normalize_text(
-                huxing
-            ),
-            "chaoxiang": normalize_text(
-                chaoxiang
-            ),
-            "zhuangxiu": normalize_text(
-                zhuangxiu
-            ),
+            "huxing": normalize_text(huxing),
+            "chaoxiang": normalize_text(chaoxiang),
+            "zhuangxiu": normalize_text(zhuangxiu),
         }
     ])
 
     pipeline = load_pipeline()
 
     predicted_unit_price = float(
-        pipeline.predict(
-            input_data
-        )[0]
+        pipeline.predict(input_data)[0]
     )
 
-    return max(
-        predicted_unit_price,
-        0.0,
-    )
+    return max(predicted_unit_price, 0.0)
 
 
 def get_final_metrics():
-    """
-    优先返回最终保存模型对应的评价指标。
-    """
     metrics = load_metrics()
 
     final_model = metrics.get(
@@ -162,12 +107,9 @@ def predict_detail(
     huxing="",
     chaoxiang="",
     zhuangxiu="",
+    city="青岛",
+    province="山东省",
 ):
-    """
-    返回当前预测单价、预测总价和模型评价指标。
-
-    总价单位为万元，单价单位为元每平方米。
-    """
     area_value = float(area)
 
     unit_price = predict_unit_price(
@@ -176,6 +118,8 @@ def predict_detail(
         huxing=huxing,
         chaoxiang=chaoxiang,
         zhuangxiu=zhuangxiu,
+        city=city,
+        province=province,
     )
 
     total_price = (
@@ -188,76 +132,36 @@ def predict_detail(
 
     model_name = (
         load_metrics()
-        .get(
-            "final_model",
-            {},
-        )
-        .get(
-            "name",
-            "RandomForest",
-        )
+        .get("final_model", {})
+        .get("name", "RandomForest")
     )
 
     return {
-        "predicted_unit_price": round(
-            unit_price,
-            2,
-        ),
-        "predicted_total_price": round(
-            total_price,
-            2,
-        ),
-        "mae": metrics.get(
-            "mae"
-        ),
-        "rmse": metrics.get(
-            "rmse"
-        ),
-        "r2": metrics.get(
-            "r2"
-        ),
+        "predicted_unit_price": round(unit_price, 2),
+        "predicted_total_price": round(total_price, 2),
+        "mae": metrics.get("mae"),
+        "rmse": metrics.get("rmse"),
+        "r2": metrics.get("r2"),
         "model_name": model_name,
     }
 
 
 def main():
-    """
-    提供命令行预测入口，
-    便于在接入网页前单独测试模型。
-    """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--area",
-        type=float,
-        required=True,
-    )
-
-    parser.add_argument(
-        "--region",
-        required=True,
-    )
-
-    parser.add_argument(
-        "--huxing",
-        default="",
-    )
-
-    parser.add_argument(
-        "--chaoxiang",
-        default="",
-    )
-
-    parser.add_argument(
-        "--zhuangxiu",
-        default="",
-    )
+    parser.add_argument("--city", default="青岛")
+    parser.add_argument("--region", required=True)
+    parser.add_argument("--area", type=float, required=True)
+    parser.add_argument("--huxing", default="")
+    parser.add_argument("--chaoxiang", default="")
+    parser.add_argument("--zhuangxiu", default="")
 
     args = parser.parse_args()
 
     result = predict_detail(
-        area=args.area,
+        city=args.city,
         region=args.region,
+        area=args.area,
         huxing=args.huxing,
         chaoxiang=args.chaoxiang,
         zhuangxiu=args.zhuangxiu,
