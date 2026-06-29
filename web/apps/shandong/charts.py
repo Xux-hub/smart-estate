@@ -2,12 +2,18 @@
 动态图表生成模块
 复用 analysis/shandong_analysis.py 中的绘图逻辑，返回 BytesIO 供 Django 视图使用
 """
-import os, re, warnings
+import os, re, tempfile, warnings
 warnings.filterwarnings('ignore')
 
 import numpy as np, pandas as pd
 from io import BytesIO
 from collections import Counter
+
+os.environ.setdefault(
+    'MPLCONFIGDIR',
+    os.path.join(tempfile.gettempdir(), 'smart-estate-matplotlib'),
+)
+os.makedirs(os.environ['MPLCONFIGDIR'], exist_ok=True)
 
 import matplotlib
 matplotlib.use('Agg')
@@ -22,22 +28,53 @@ from web.apps.house.models import City, House
 
 # ── 中文字体初始化（只执行一次）──
 _FONT_INITED = False
+_FONT_PATH = None
+
+
+def _find_chinese_font():
+    project_root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    )
+    candidates = [
+        os.environ.get('SMART_ESTATE_FONT_PATH'),
+        os.path.join(project_root, 'web', 'static', 'fonts', 'NotoSansCJKsc-Regular.otf'),
+        os.path.join(project_root, 'web', 'static', 'fonts', 'SimHei.ttf'),
+        'C:/Windows/Fonts/simhei.ttf',
+        'C:/Windows/Fonts/msyh.ttc',
+        '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+        '/usr/share/fonts/opentype/noto/NotoSansCJKsc-Regular.otf',
+        '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
+        '/usr/share/fonts/truetype/arphic/uming.ttc',
+    ]
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return path
+    font_keywords = ('notosanscjk', 'wqy', 'wenquanyi', 'simhei', 'msyh')
+    for path in fm.findSystemFonts():
+        name = os.path.basename(path).replace(' ', '').lower()
+        if any(keyword in name for keyword in font_keywords):
+            return path
+    return None
+
+
 def _init_font():
-    global _FONT_INITED
+    global _FONT_INITED, _FONT_PATH
     if _FONT_INITED:
         return
-    for f in os.listdir(matplotlib.get_cachedir()):
-        if 'font' in f.lower():
-            try:
-                os.remove(os.path.join(matplotlib.get_cachedir(), f))
-            except OSError:
-                pass
-    fp = fm.FontProperties(fname='C:/Windows/Fonts/simhei.ttf')
-    fn = fp.get_name()
-    plt.rcParams['font.family'] = fn
+    _FONT_PATH = _find_chinese_font()
+    if _FONT_PATH:
+        fm.fontManager.addfont(_FONT_PATH)
+        fn = fm.FontProperties(fname=_FONT_PATH).get_name()
+        plt.rcParams['font.family'] = fn
+        plt.rcParams['font.sans-serif'] = [fn]
+    else:
+        plt.rcParams['font.sans-serif'] = [
+            'Noto Sans CJK SC', 'WenQuanYi Zen Hei', 'SimHei', 'DejaVu Sans'
+        ]
     plt.rcParams['axes.unicode_minus'] = False
     sns.set_style("whitegrid")
-    plt.rcParams['font.family'] = fn
+    if _FONT_PATH:
+        plt.rcParams['font.family'] = fn
     _FONT_INITED = True
 
 
@@ -263,7 +300,7 @@ def chart_wordcloud():
     mask = np.array(mask_img)
 
     wc = WordCloud(
-        font_path='C:/Windows/Fonts/simhei.ttf',
+        font_path=_FONT_PATH,
         mask=mask, background_color='white',
         max_font_size=60, min_font_size=8,
         max_words=150, width=400, height=400,

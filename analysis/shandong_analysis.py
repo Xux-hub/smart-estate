@@ -2,8 +2,14 @@
 山东省二手房数据分析可视化
 生成 10 张图表：描述性统计表 + 9 张可视化图表
 """
-import os, re, numpy as np, pandas as pd, warnings
+import os, re, tempfile, numpy as np, pandas as pd, warnings
 warnings.filterwarnings('ignore')
+
+os.environ.setdefault(
+    'MPLCONFIGDIR',
+    os.path.join(tempfile.gettempdir(), 'smart-estate-matplotlib'),
+)
+os.makedirs(os.environ['MPLCONFIGDIR'], exist_ok=True)
 
 import matplotlib
 matplotlib.use('Agg')
@@ -13,16 +19,45 @@ import matplotlib.ticker as ticker
 import seaborn as sns
 
 # ── 中文字体设置（强制清除缓存 + 指定字体文件）──
-for f in os.listdir(matplotlib.get_cachedir()):
-    if 'font' in f.lower():
-        os.remove(os.path.join(matplotlib.get_cachedir(), f))
-fp = fm.FontProperties(fname='C:/Windows/Fonts/simhei.ttf')
-FONT_NAME = fp.get_name()
-plt.rcParams['font.family'] = FONT_NAME
+def _find_chinese_font():
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    candidates = [
+        os.environ.get('SMART_ESTATE_FONT_PATH'),
+        os.path.join(project_root, 'web', 'static', 'fonts', 'NotoSansCJKsc-Regular.otf'),
+        os.path.join(project_root, 'web', 'static', 'fonts', 'SimHei.ttf'),
+        'C:/Windows/Fonts/simhei.ttf',
+        'C:/Windows/Fonts/msyh.ttc',
+        '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+        '/usr/share/fonts/opentype/noto/NotoSansCJKsc-Regular.otf',
+        '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
+        '/usr/share/fonts/truetype/arphic/uming.ttc',
+    ]
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return path
+    font_keywords = ('notosanscjk', 'wqy', 'wenquanyi', 'simhei', 'msyh')
+    for path in fm.findSystemFonts():
+        name = os.path.basename(path).replace(' ', '').lower()
+        if any(keyword in name for keyword in font_keywords):
+            return path
+    return None
+
+
+FONT_PATH = _find_chinese_font()
+if FONT_PATH:
+    fm.fontManager.addfont(FONT_PATH)
+    FONT_NAME = fm.FontProperties(fname=FONT_PATH).get_name()
+    plt.rcParams['font.family'] = FONT_NAME
+else:
+    FONT_NAME = 'DejaVu Sans'
+    plt.rcParams['font.sans-serif'] = [
+        'Noto Sans CJK SC', 'WenQuanYi Zen Hei', 'SimHei', FONT_NAME
+    ]
 plt.rcParams['axes.unicode_minus'] = False
 sns.set_style("whitegrid")
 # 再次覆盖（sns 会重置 font.family）
-plt.rcParams['font.family'] = FONT_NAME
+if FONT_PATH:
+    plt.rcParams['font.family'] = FONT_NAME
 
 # ── 输出目录 ──
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shandong_charts')
@@ -334,7 +369,7 @@ def house_wordcloud(df):
 
     # 生成词云
     wc = WordCloud(
-        font_path='C:/Windows/Fonts/simhei.ttf',
+        font_path=FONT_PATH,
         mask=mask,
         background_color='white',
         max_font_size=80,
